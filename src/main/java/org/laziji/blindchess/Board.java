@@ -21,7 +21,7 @@ public class Board {
 
     }
 
-    public void active(String cmd) {
+    public void activeByEnCmd(String cmd) {
         int ox = cmd.charAt(5) - 'a';
         int oy = cmd.charAt(6) - '0';
         int nx = cmd.charAt(7) - 'a';
@@ -29,6 +29,11 @@ public class Board {
         map[ny][nx] = map[oy][ox];
         map[oy][ox] = ' ';
         wb = 1 - wb;
+    }
+
+    public void activeByChCmd(String cmd) {
+        // 炮8平5
+        cmd = cmd.replaceAll("\\s", "");
     }
 
     public String getStatus() {
