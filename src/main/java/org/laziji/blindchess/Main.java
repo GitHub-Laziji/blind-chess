@@ -12,7 +12,7 @@ public class Main {
 
         Terminal terminal = TerminalBuilder.terminal();
 
-        Completer commandCompleter = new StringsCompleter("X");
+        Completer commandCompleter = new StepCompleter();
         LineReader lineReader = LineReaderBuilder.builder()
                 .terminal(terminal)
                 .completer(commandCompleter)
