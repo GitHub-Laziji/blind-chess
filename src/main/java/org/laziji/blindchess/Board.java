@@ -8,20 +8,20 @@ import net.sourceforge.pinyin4j.format.HanyuPinyinVCharType;
 
 public class Board {
 
-    private final char[][] map = new char[][]{
-            {'R', 'N', 'B', 'A', 'K', 'A', 'B', 'N', 'R'},
-            {' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '},
-            {' ', 'C', ' ', ' ', ' ', ' ', ' ', 'C', ' '},
-            {'P', ' ', 'P', ' ', 'P', ' ', 'P', ' ', 'P'},
-            {' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '},
-            {' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '},
-            {'p', ' ', 'p', ' ', 'p', ' ', 'p', ' ', 'p'},
-            {' ', 'c', ' ', ' ', ' ', ' ', ' ', 'c', ' '},
-            {' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '},
-            {'r', 'n', 'b', 'a', 'k', 'a', 'b', 'n', 'r'},
+    private final String[][] map = new String[][]{
+            {"R", "N", "B", "A", "K", "A", "B", "N", "R"},
+            {" ", " ", " ", " ", " ", " ", " ", " ", " "},
+            {" ", "C", " ", " ", " ", " ", " ", "C", " "},
+            {"P", " ", "P", " ", "P", " ", "P", " ", "P"},
+            {" ", " ", " ", " ", " ", " ", " ", " ", " "},
+            {" ", " ", " ", " ", " ", " ", " ", " ", " "},
+            {"p", " ", "p", " ", "p", " ", "p", " ", "p"},
+            {" ", "c", " ", " ", " ", " ", " ", "c", " "},
+            {" ", " ", " ", " ", " ", " ", " ", " ", " "},
+            {"r", "n", "b", "a", "k", "a", "b", "n", "r"},
     };
 
-    private int wb = 0;
+    private int rb = 0;
 
     public Board() {
 
@@ -30,66 +30,18 @@ public class Board {
     public void active(int ox, int oy, int nx, int ny) {
         System.out.println(ox + " " + oy + "," + nx + " " + ny);
         map[ny][nx] = map[oy][ox];
-        map[oy][ox] = ' ';
-        wb = 1 - wb;
+        map[oy][ox] = " ";
+        rb = 1 - rb;
     }
 
     public void activeByEnCmd(String cmd) throws Exception {
-        int ox = cmd.charAt(5) - 'a';
-        int oy = cmd.charAt(6) - '0';
-        int nx = cmd.charAt(7) - 'a';
-        int ny = cmd.charAt(8) - '0';
-        active(ox, oy, nx, ny);
+        int[] xy = enCmdToXy(cmd);
+        active(xy[0], xy[1], xy[2], xy[3]);
     }
 
     public void activeByChCmd(String cmd) throws Exception {
-
-        cmd = cmd.replaceAll("\\s", "");
-        if (cmd.length() != 4) {
-            throw new Exception(String.format("ERROR: [%s]走棋不符合规范", cmd));
-        }
-        int ox = -1;
-        int oy = -1;
-        // 炮8平5
-        if (cmd.matches("^[\\u4E00-\\u9FA5][1-9]..$")) {
-            String c = getPingYin(String.valueOf(cmd.charAt(0)));
-            System.out.println(c);
-            ox = Integer.parseInt(String.valueOf(cmd.charAt(1))) - 1;
-            System.out.println(ox);
-            for (oy = 0; oy < 10; oy++) {
-                if (map[oy][ox] == 'K' && "shuai".equals(c)
-                        || map[oy][ox] == 'A' && "shi".equals(c)
-                        || map[oy][ox] == 'B' && "xiang".equals(c)
-                        || map[oy][ox] == 'N' && "ma".equals(c)
-                        || map[oy][ox] == 'R' && ("ju".equals(c) || "che".equals(c))
-                        || map[oy][ox] == 'C' && "pao".equals(c)
-                        || map[oy][ox] == 'P' && "bing".equals(c)) {
-                    break;
-                }
-            }
-            if (oy == 10) {
-                throw new Exception(String.format("ERROR: [%c]路线上没有棋子[%s]", cmd.charAt(1), c));
-            }
-        } else if (cmd.matches("^([前中后][\\u4E00-\\u9FA5]|[一二三四五]兵)..$")) {
-
-        } else {
-            throw new Exception(String.format("ERROR: [%s]走棋不符合规范", cmd));
-        }
-
-        int nx = ox;
-        int ny = oy;
-        if (cmd.matches("^..[进平退][1-9]$")) {
-            if (cmd.charAt(2) == '进') {
-                ny += Integer.parseInt(String.valueOf(cmd.charAt(3)));
-            } else if (cmd.charAt(2) == '平') {
-                nx = Integer.parseInt(String.valueOf(cmd.charAt(3))) - 1;
-            } else if (cmd.charAt(2) == '退') {
-                ny -= Integer.parseInt(String.valueOf(cmd.charAt(3)));
-            }
-            active(ox, oy, nx, ny);
-        } else {
-            throw new Exception(String.format("ERROR: [%s]走棋不符合规范", cmd));
-        }
+        int[] xy = chCmdToXy(cmd);
+        active(xy[0], xy[1], xy[2], xy[3]);
     }
 
     public String getStatus() {
@@ -100,7 +52,7 @@ public class Board {
             }
             int space = 0;
             for (int x = 0; x < 9; x++) {
-                if (map[y][x] == ' ') {
+                if (" ".equals(map[y][x])) {
                     space++;
                     continue;
                 }
@@ -117,8 +69,8 @@ public class Board {
         return result.toString();
     }
 
-    public String getWb() {
-        return wb == 0 ? "w" : "b";
+    public String getRb() {
+        return rb == 0 ? "w" : "b";
     }
 
     public void print() {
@@ -151,5 +103,85 @@ public class Board {
             e.printStackTrace();
             throw new RuntimeException();
         }
+    }
+
+
+    private int[] chCmdToXy(String cmd) throws Exception {
+        cmd = cmd.replaceAll("\\s", "");
+        if (cmd.length() != 4) {
+            throw new Exception(String.format("ERROR: [%s]走棋不符合规范", cmd));
+        }
+        int ox = -1;
+        int oy = -1;
+        // 炮8平5
+        Chess chess = null;
+        if (cmd.matches("^[\\u4E00-\\u9FA5][1-9]..$")) {
+            String c = getPingYin(String.valueOf(cmd.charAt(0)));
+            System.out.println(c);
+            ox = Integer.parseInt(String.valueOf(cmd.charAt(1))) - 1;
+            System.out.println(ox);
+            for (oy = 0; oy < 10; oy++) {
+                chess = Chess.find(map[oy][ox], null, null, 0);
+                if (chess != null && chess.getPy().equals(c)) {
+                    break;
+                }
+            }
+            if (oy == 10) {
+                throw new Exception(String.format("ERROR: [%c]路线上没有棋子[%s]", cmd.charAt(1), c));
+            }
+        } else if (cmd.matches("^([前中后][\\u4E00-\\u9FA5]|[一二三四五]兵)..$")) {
+
+        } else {
+            throw new Exception(String.format("ERROR: [%s]走棋不符合规范", cmd));
+        }
+
+        int nx = ox;
+        int ny = oy;
+        if (cmd.matches("^..[进平退][1-9]$")) {
+            if (cmd.charAt(2) == '进') {
+                if (chess == Chess.R_SHI) {
+                    ny += 1;
+                    nx = Integer.parseInt(String.valueOf(cmd.charAt(3))) - 1;
+                } else if (chess == Chess.R_XIANG) {
+                    ny += 2;
+                    nx = Integer.parseInt(String.valueOf(cmd.charAt(3))) - 1;
+                } else if (chess == Chess.R_MA) {
+                    ny += 3 - Math.abs(Integer.parseInt(String.valueOf(cmd.charAt(3))) - Integer.parseInt(String.valueOf(cmd.charAt(1))));
+                    nx = Integer.parseInt(String.valueOf(cmd.charAt(3))) - 1;
+                } else {
+                    ny += Integer.parseInt(String.valueOf(cmd.charAt(3)));
+                }
+            } else if (cmd.charAt(2) == '平') {
+                nx = Integer.parseInt(String.valueOf(cmd.charAt(3))) - 1;
+            } else if (cmd.charAt(2) == '退') {
+                if (chess == Chess.R_SHI) {
+                    ny -= 1;
+                    nx = Integer.parseInt(String.valueOf(cmd.charAt(3))) - 1;
+                } else if (chess == Chess.R_XIANG) {
+                    ny -= 2;
+                    nx = Integer.parseInt(String.valueOf(cmd.charAt(3))) - 1;
+                } else if (chess == Chess.R_MA) {
+                    ny -= 3 - Math.abs(Integer.parseInt(String.valueOf(cmd.charAt(3))) - Integer.parseInt(String.valueOf(cmd.charAt(1))));
+                    nx = Integer.parseInt(String.valueOf(cmd.charAt(3))) - 1;
+                } else {
+                    ny -= Integer.parseInt(String.valueOf(cmd.charAt(3)));
+                }
+            }
+            return new int[]{ox, oy, nx, ny};
+        } else {
+            throw new Exception(String.format("ERROR: [%s]走棋不符合规范", cmd));
+        }
+    }
+
+    private int[] enCmdToXy(String cmd) throws Exception {
+        int ox = cmd.charAt(5) - 'a';
+        int oy = cmd.charAt(6) - '0';
+        int nx = cmd.charAt(7) - 'a';
+        int ny = cmd.charAt(8) - '0';
+        return new int[]{ox, oy, nx, ny};
+    }
+
+    private String xyToChCmd(int ox, int oy, int nx, int ny) {
+        return "";
     }
 }
