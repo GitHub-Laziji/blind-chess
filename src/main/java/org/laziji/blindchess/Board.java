@@ -21,14 +21,15 @@ public class Board {
             {"r", "n", "b", "a", "k", "a", "b", "n", "r"},
     };
 
-    private int rb = 0;
+    private Integer rb = 0;
+    private Integer stepCount = 0;
 
     public Board() {
 
     }
 
     public void active(int ox, int oy, int nx, int ny) {
-        System.out.println(ox + " " + oy + "," + nx + " " + ny);
+        System.out.printf("%d\t%s: %s\n", ++stepCount, rb == 0 ? "红" : "黑", xyToChCmd(ox, oy, nx, ny));
         map[ny][nx] = map[oy][ox];
         map[oy][ox] = " ";
         rb = 1 - rb;
@@ -36,11 +37,12 @@ public class Board {
 
     public void activeByEnCmd(String cmd) throws Exception {
         int[] xy = enCmdToXy(cmd);
+
         active(xy[0], xy[1], xy[2], xy[3]);
     }
 
     public void activeByChCmd(String cmd) throws Exception {
-        int[] xy = chCmdToXy(cmd);
+        int[] xy = chCmdToXy(cmd, 0);
         active(xy[0], xy[1], xy[2], xy[3]);
     }
 
@@ -106,7 +108,7 @@ public class Board {
     }
 
 
-    private int[] chCmdToXy(String cmd) throws Exception {
+    private int[] chCmdToXy(String cmd, Integer rb) throws Exception {
         cmd = cmd.replaceAll("\\s", "");
         if (cmd.length() != 4) {
             throw new Exception(String.format("ERROR: [%s]走棋不符合规范", cmd));
@@ -117,11 +119,11 @@ public class Board {
         Chess chess = null;
         if (cmd.matches("^[\\u4E00-\\u9FA5][1-9]..$")) {
             String c = getPingYin(String.valueOf(cmd.charAt(0)));
-            System.out.println(c);
+//            System.out.println(c);
             ox = Integer.parseInt(String.valueOf(cmd.charAt(1))) - 1;
-            System.out.println(ox);
+//            System.out.println(ox);
             for (oy = 0; oy < 10; oy++) {
-                chess = Chess.find(map[oy][ox], null, null, 0);
+                chess = Chess.find(map[rb == 0 ? oy : (9 - oy)][rb == 0 ? ox : (8 - ox)], null, null, rb);
                 if (chess != null && chess.getPy().equals(c)) {
                     break;
                 }
@@ -167,6 +169,12 @@ public class Board {
                     ny -= Integer.parseInt(String.valueOf(cmd.charAt(3)));
                 }
             }
+            if (rb != 0) {
+                ox = 8 - ox;
+                oy = 9 - oy;
+                nx = 8 - ox;
+                ny = 8 - ny;
+            }
             return new int[]{ox, oy, nx, ny};
         } else {
             throw new Exception(String.format("ERROR: [%s]走棋不符合规范", cmd));
@@ -182,6 +190,37 @@ public class Board {
     }
 
     private String xyToChCmd(int ox, int oy, int nx, int ny) {
-        return "";
+        Chess chess = Chess.find(map[oy][ox], null, null, null);
+//        System.out.printf("%d %d %d %d, %s",ox,oy,nx,ny,chess.name());
+        StringBuilder cmd = new StringBuilder();
+        cmd.append(chess.getName());
+        cmd.append(chess.getRb() == 0 ? (ox + 1) : (8 - ox + 1));
+        if (oy == ny) {
+            cmd.append("平");
+            cmd.append(chess.getRb() == 0 ? (nx + 1) : (8 - nx + 1));
+        } else if (oy < ny) {
+            if (chess.getRb() == 0) {
+                cmd.append("进");
+            } else {
+                cmd.append("退");
+            }
+            if (ox == nx) {
+                cmd.append(ny - oy);
+            } else {
+                cmd.append(chess.getRb() == 0 ? (nx + 1) : (8 - nx + 1));
+            }
+        } else {
+            if (chess.getRb() == 0) {
+                cmd.append("退");
+            } else {
+                cmd.append("进");
+            }
+            if (ox == nx) {
+                cmd.append(oy - ny);
+            } else {
+                cmd.append(chess.getRb() == 0 ? (nx + 1) : (8 - nx + 1));
+            }
+        }
+        return cmd.toString();
     }
 }

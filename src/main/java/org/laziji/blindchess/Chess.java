@@ -8,13 +8,13 @@ public enum Chess {
     R_JU("R", "車", "ju", 0),
     R_PAO("C", "炮", "pao", 0),
     R_BING("P", "兵", "bing", 0),
-    B_JIANG("k", "将", "jiang", 0),
-    B_SHI("a", "士", "shi", 0),
-    B_XIANG("b", "象", "xiang", 0),
-    B_MA("n", "马", "ma", 0),
-    B_JU("r", "车", "ju", 0),
-    B_PAO("c", "砲", "pao", 0),
-    B_ZU("p", "卒", "zu", 0);
+    B_JIANG("k", "将", "jiang", 1),
+    B_SHI("a", "士", "shi", 1),
+    B_XIANG("b", "象", "xiang", 1),
+    B_MA("n", "马", "ma", 1),
+    B_JU("r", "车", "ju", 1),
+    B_PAO("c", "砲", "pao", 1),
+    B_ZU("p", "卒", "zu", 1);
 
     private final String code;
     private final String name;

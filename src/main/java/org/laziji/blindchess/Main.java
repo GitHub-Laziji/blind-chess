@@ -28,15 +28,16 @@ public class Main {
                 if ("exit".equals(line)) {
                     break;
                 }
-                System.out.println("你输入的命令是: " + line);
+//                System.out.println("你输入的命令是: " + line);
                 try {
                     board.activeByChCmd(line);
-                    String url = String.format("http://www.chessdb.cn/chessdb.php?action=querybest&board=%s%%20w", board.getStatus());
-                    System.out.println(url);
-                    board.print();
+                    String url = String.format("http://www.chessdb.cn/chessdb.php?action=querybest&board=%s%%20b", board.getStatus());
+//                    System.out.println(url);
+//                    board.print();
                     HttpGet httpGet = new HttpGet(url);
                     try (CloseableHttpResponse response = httpClient.execute(httpGet)) {
-                        System.out.println(EntityUtils.toString(response.getEntity()));
+                        String bEnCmd=EntityUtils.toString(response.getEntity());
+                        board.activeByEnCmd(bEnCmd);
                     }
                 } catch (Exception e) {
                     e.printStackTrace();
