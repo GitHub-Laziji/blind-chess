@@ -28,7 +28,7 @@ public class Board {
 
     }
 
-    public void active(int ox, int oy, int nx, int ny) {
+    public void active(int ox, int oy, int nx, int ny) throws Exception {
         System.out.printf("%d\t%s: %s\n", ++stepCount, rb == 0 ? "红" : "黑", xyToChCmd(ox, oy, nx, ny));
         map[ny][nx] = map[oy][ox];
         map[oy][ox] = " ";
@@ -115,13 +115,10 @@ public class Board {
         }
         int ox = -1;
         int oy = -1;
-        // 炮8平5
         Chess chess = null;
         if (cmd.matches("^[\\u4E00-\\u9FA5][1-9]..$")) {
             String c = getPingYin(String.valueOf(cmd.charAt(0)));
-//            System.out.println(c);
             ox = Integer.parseInt(String.valueOf(cmd.charAt(1))) - 1;
-//            System.out.println(ox);
             for (oy = 0; oy < 10; oy++) {
                 chess = Chess.find(map[rb == 0 ? oy : (9 - oy)][rb == 0 ? ox : (8 - ox)], null, c, rb);
                 if (chess != null) {
@@ -189,17 +186,23 @@ public class Board {
         return new int[]{ox, oy, nx, ny};
     }
 
-    private String xyToChCmd(int ox, int oy, int nx, int ny) {
-        Chess chess = Chess.find(map[oy][ox], null, null, null);
-//        System.out.printf("%d %d %d %d, %s",ox,oy,nx,ny,chess.name());
+    private String xyToChCmd(int ox, int oy, int nx, int ny) throws Exception {
+        Chess from = Chess.find(map[oy][ox], null, null, null);
+        Chess to = Chess.find(map[ny][nx], null, null, null);
+        if (from == null) {
+            throw new Exception(String.format("命令错误。(%d,%d)不存在棋子", ox, oy));
+        }
+        if (to != null && to.getRb().equals(from.getRb())) {
+            throw new Exception(String.format("命令错误。(%d,%d)与(%d,%d)棋子属于同一方", ox, oy, nx, ny));
+        }
         StringBuilder cmd = new StringBuilder();
-        cmd.append(chess.getName());
-        cmd.append(chess.getRb() == 0 ? (ox + 1) : (8 - ox + 1));
+        cmd.append(from.getName());
+        cmd.append(from.getRb() == 0 ? (ox + 1) : (8 - ox + 1));
         if (oy == ny) {
             cmd.append("平");
-            cmd.append(chess.getRb() == 0 ? (nx + 1) : (8 - nx + 1));
+            cmd.append(from.getRb() == 0 ? (nx + 1) : (8 - nx + 1));
         } else if (oy < ny) {
-            if (chess.getRb() == 0) {
+            if (from.getRb() == 0) {
                 cmd.append("进");
             } else {
                 cmd.append("退");
@@ -207,10 +210,10 @@ public class Board {
             if (ox == nx) {
                 cmd.append(ny - oy);
             } else {
-                cmd.append(chess.getRb() == 0 ? (nx + 1) : (8 - nx + 1));
+                cmd.append(from.getRb() == 0 ? (nx + 1) : (8 - nx + 1));
             }
         } else {
-            if (chess.getRb() == 0) {
+            if (from.getRb() == 0) {
                 cmd.append("退");
             } else {
                 cmd.append("进");
@@ -218,7 +221,7 @@ public class Board {
             if (ox == nx) {
                 cmd.append(oy - ny);
             } else {
-                cmd.append(chess.getRb() == 0 ? (nx + 1) : (8 - nx + 1));
+                cmd.append(from.getRb() == 0 ? (nx + 1) : (8 - nx + 1));
             }
         }
         return cmd.toString();
