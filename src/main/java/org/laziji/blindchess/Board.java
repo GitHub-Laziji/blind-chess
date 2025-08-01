@@ -123,8 +123,8 @@ public class Board {
             ox = Integer.parseInt(String.valueOf(cmd.charAt(1))) - 1;
 //            System.out.println(ox);
             for (oy = 0; oy < 10; oy++) {
-                chess = Chess.find(map[rb == 0 ? oy : (9 - oy)][rb == 0 ? ox : (8 - ox)], null, null, rb);
-                if (chess != null && chess.getPy().equals(c)) {
+                chess = Chess.find(map[rb == 0 ? oy : (9 - oy)][rb == 0 ? ox : (8 - ox)], null, c, rb);
+                if (chess != null) {
                     break;
                 }
             }
