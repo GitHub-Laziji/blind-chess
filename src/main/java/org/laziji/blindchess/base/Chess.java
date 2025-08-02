@@ -1,6 +1,4 @@
-package org.laziji.blindchess;
-
-import org.laziji.blindchess.bean.Point;
+package org.laziji.blindchess.base;
 
 import java.util.List;
 
@@ -50,10 +48,10 @@ public enum Chess {
 
     private final String name;
     private final String py;
-    private final Integer rb;
+    private final int rb;
     private final NextPoint nextPoint;
 
-    Chess(String name, String py, Integer rb, NextPoint nextPoint) {
+    Chess(String name, String py, int rb, NextPoint nextPoint) {
         this.name = name;
         this.py = py;
         this.rb = rb;
@@ -68,7 +66,7 @@ public enum Chess {
         return py;
     }
 
-    public Integer getRb() {
+    public int getRb() {
         return rb;
     }
 

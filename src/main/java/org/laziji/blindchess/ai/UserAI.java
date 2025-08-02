@@ -10,10 +10,11 @@ import org.jline.reader.*;
 import org.jline.reader.impl.completer.StringsCompleter;
 import org.jline.terminal.Terminal;
 import org.jline.terminal.TerminalBuilder;
-import org.laziji.blindchess.Board;
-import org.laziji.blindchess.Chess;
-import org.laziji.blindchess.bean.Point;
-import org.laziji.blindchess.bean.Step;
+import org.laziji.blindchess.base.Board;
+import org.laziji.blindchess.base.Chess;
+import org.laziji.blindchess.base.Point;
+import org.laziji.blindchess.base.Step;
+import org.laziji.blindchess.exception.StepException;
 
 import java.util.List;
 import java.util.regex.Pattern;
@@ -54,7 +55,7 @@ public class UserAI implements AI {
     private Step chCmdToXy(String cmd) throws Exception {
         cmd = cmd.replaceAll("\\s", "");
         if (cmd.length() != 4) {
-            throw new Exception(String.format("ERROR: [%s]走棋不符合规范", cmd));
+            throw new StepException(String.format("ERROR: [%s]走棋不符合规范", cmd));
         }
         int ox = -1;
         int oy = -1;
@@ -69,12 +70,12 @@ public class UserAI implements AI {
                 }
             }
             if (oy == 10) {
-                throw new Exception(String.format("ERROR: [%c]路线上没有棋子[%s]", cmd.charAt(1), c));
+                throw new StepException(String.format("ERROR: [%c]路线上没有棋子[%s]", cmd.charAt(1), c));
             }
         } else if (cmd.matches("^([前中后][\\u4E00-\\u9FA5]|[一二三四五]兵)..$")) {
 
         } else {
-            throw new Exception(String.format("ERROR: [%s]走棋不符合规范", cmd));
+            throw new StepException(String.format("ERROR: [%s]走棋不符合规范", cmd));
         }
 
         int nx = ox;
@@ -109,7 +110,7 @@ public class UserAI implements AI {
             }
             return new Step(new Point(ox, oy), new Point(nx, ny));
         } else {
-            throw new Exception(String.format("ERROR: [%s]走棋不符合规范", cmd));
+            throw new StepException(String.format("ERROR: [%s]走棋不符合规范", cmd));
         }
     }
 

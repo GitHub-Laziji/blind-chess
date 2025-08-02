@@ -5,10 +5,10 @@ import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
 import org.apache.hc.client5.http.impl.classic.CloseableHttpResponse;
 import org.apache.hc.client5.http.impl.classic.HttpClients;
 import org.apache.hc.core5.http.io.entity.EntityUtils;
-import org.laziji.blindchess.Board;
-import org.laziji.blindchess.Chess;
-import org.laziji.blindchess.bean.Point;
-import org.laziji.blindchess.bean.Step;
+import org.laziji.blindchess.base.Board;
+import org.laziji.blindchess.base.Chess;
+import org.laziji.blindchess.base.Point;
+import org.laziji.blindchess.base.Step;
 
 import java.util.HashMap;
 import java.util.Map;

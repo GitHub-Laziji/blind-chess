@@ -1,4 +1,4 @@
-package org.laziji.blindchess.bean;
+package org.laziji.blindchess.base;
 
 public class Step {
 

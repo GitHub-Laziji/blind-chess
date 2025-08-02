@@ -1,8 +1,9 @@
-package org.laziji.blindchess;
+package org.laziji.blindchess.base;
 
 import org.laziji.blindchess.ai.AI;
-import org.laziji.blindchess.bean.Point;
-import org.laziji.blindchess.bean.Step;
+import org.laziji.blindchess.exception.StepException;
+
+import java.util.List;
 
 public class Board {
 
@@ -30,24 +31,8 @@ public class Board {
         players[1] = bPlayer;
     }
 
-    public void active(Step step) throws Exception {
-        stepVerify(step);
-        System.out.printf("%d\t%s: %s\n", ++stepCount, rb == 0 ? "红" : "黑", xyToChCmd(step));
-        map[step.getTo().getY()][step.getTo().getX()] = map[step.getFrom().getY()][step.getFrom().getX()];
-        map[step.getFrom().getY()][step.getFrom().getX()] = null;
-        rb = 1 - rb;
-        finalVerify();
-    }
 
-    void stepVerify(Step step) {
-
-    }
-
-    void finalVerify() {
-
-    }
-
-    void run() throws Exception {
+    public void run() throws Exception {
         players[0].init(this, 0);
         players[1].init(this, 1);
         while (!done) {
@@ -60,6 +45,8 @@ public class Board {
             }
             try {
                 active(step);
+            } catch (StepException e) {
+                System.out.println(e.getMessage());
             } catch (Exception e) {
                 e.printStackTrace();
             }
@@ -76,20 +63,39 @@ public class Board {
         return map[y][x];
     }
 
-    public String getRb() {
-        return rb == 0 ? "w" : "b";
+    private void active(Step step) throws Exception {
+        stepVerify(step);
+        System.out.printf("%d\t%s: %s\n", ++stepCount, rb == 0 ? "红" : "黑", stepToChCmd(step));
+        map[step.getTo().getY()][step.getTo().getX()] = map[step.getFrom().getY()][step.getFrom().getX()];
+        map[step.getFrom().getY()][step.getFrom().getX()] = null;
+        rb = 1 - rb;
+        finalVerify();
     }
 
-    public void print() {
-        for (int y = 0; y < 10; y++) {
-            for (int x = 0; x < 9; x++) {
-                System.out.print(map[y][x]);
-            }
-            System.out.println();
+    private void stepVerify(Step step) {
+        Chess from = getChess(step.getFrom());
+        Chess to = getChess(step.getTo());
+        if (from == null) {
+            throw new StepException("ERROR: 起始点不存在棋子");
+        }
+        if (from.getRb() != rb) {
+            throw new StepException("ERROR: 起始点为对方棋子");
+        }
+        if (to != null && to.getRb() == from.getRb()) {
+            throw new StepException("ERROR: 目标点已存在友方棋子");
+        }
+
+        List<Point> points = getChess(step.getFrom()).getNextPoint().get(this, step.getFrom());
+        if (!points.contains(step.getTo())) {
+            throw new StepException("ERROR: 走棋不符合规范");
         }
     }
 
-    private String xyToChCmd(Step step) throws Exception {
+    private void finalVerify() {
+
+    }
+
+    private String stepToChCmd(Step step) {
         int ox = step.getFrom().getX();
         int oy = step.getFrom().getY();
         int nx = step.getTo().getX();

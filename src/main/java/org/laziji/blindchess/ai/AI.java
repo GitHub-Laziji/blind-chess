@@ -1,7 +1,7 @@
 package org.laziji.blindchess.ai;
 
-import org.laziji.blindchess.Board;
-import org.laziji.blindchess.bean.Step;
+import org.laziji.blindchess.base.Board;
+import org.laziji.blindchess.base.Step;
 
 public interface AI {
 
