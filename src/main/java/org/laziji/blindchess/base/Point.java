@@ -47,6 +47,10 @@ public class Point {
         return new Point(x, y - n);
     }
 
+    public Point to(int dx, int dy) {
+        return new Point(x + dx, y + dy);
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;

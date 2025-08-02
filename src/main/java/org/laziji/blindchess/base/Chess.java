@@ -2,13 +2,22 @@ package org.laziji.blindchess.base;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
 public enum Chess {
-    R_SHUAI("帥", "shuai", 0, (board, point) -> {
+    R_SHUAI("帥", "shuai", 0, true, (board, point) -> {
         List<Point> next = Arrays.asList(point.toL(1), point.toR(1), point.toT(1), point.toB(1));
-        return next.stream().filter(o -> board.inJiuGong(o, 0) && board.hasChess(o, 0)).collect(Collectors.toList());
+        return next.stream().filter(o -> {
+            if (!board.inJiuGong(o, 0) && board.hasChess(o, 0)) {
+                return false;
+            }
+            do {
+                o = o.toT(1);
+            } while (board.inBoard(o) && !board.hasChess(o));
+            return !board.inBoard(o) || !board.getChess(o).isKing();
+        }).collect(Collectors.toList());
     }),
     R_SHI("仕", "shi", 0, (board, point) -> {
         List<Point> next = Arrays.asList(point.toT(1).toL(1), point.toT(1).toR(1), point.toB(1).toL(1), point.toB(1).toR(1));
@@ -32,46 +41,53 @@ public enum Chess {
             return !board.hasChess(new Point((int) Math.floor((o.getX() - point.getX()) / 2d) + point.getX(), (int) Math.floor((o.getY() - point.getY()) / 2d) + point.getY()));
         }).collect(Collectors.toList());
     }),
-    R_JU("車", "che", 0, (board, point) -> {
+    R_JU("車", "ju", 0, (board, point) -> {
         List<Point> next = new ArrayList<>();
-        Point p;
-        p = point;
-        do {
-            p = p.toL(1);
-            if (board.inBoard(p) && !board.hasChess(p, 0)) {
-                next.add(p);
+        for (int[] dxy : new int[][]{{1, 0}, {-1, 0}, {0, 1}, {0, -1}}) {
+            Point p = point;
+            while (board.inBoard(p)) {
+                p = p.to(dxy[0], dxy[1]);
+                if (!board.hasChess(p, 0)) {
+                    next.add(p);
+                }
+                if (board.hasChess(p)) {
+                    break;
+                }
             }
-        } while (!board.hasChess(p));
-        p = point;
-        do {
-            p = p.toR(1);
-            if (board.inBoard(p) && !board.hasChess(p, 0)) {
-                next.add(p);
-            }
-        } while (!board.hasChess(p));
-        p = point;
-        do {
-            p = p.toT(1);
-            if (board.inBoard(p) && !board.hasChess(p, 0)) {
-                next.add(p);
-            }
-        } while (!board.hasChess(p));
-        p = point;
-        do {
-            p = p.toB(1);
-            if (board.inBoard(p) && !board.hasChess(p, 0)) {
-                next.add(p);
-            }
-        } while (!board.hasChess(p));
+        }
         return next;
     }),
-    R_PAO("炮", "pao", 0, (b, p) -> {
-        return null;
+    R_PAO("炮", "pao", 0, (board, point) -> {
+        List<Point> next = new ArrayList<>();
+        for (int[] dxy : new int[][]{{1, 0}, {-1, 0}, {0, 1}, {0, -1}}) {
+            Point p = point;
+            while (board.inBoard(p)) {
+                p = p.to(dxy[0], dxy[1]);
+                if (!board.hasChess(p)) {
+                    next.add(p);
+                } else {
+                    do {
+                        p = p.to(dxy[0], dxy[1]);
+                    } while (board.inBoard(p) && !board.hasChess(p));
+                    if (board.inBoard(p) && board.getChess(p).getRb() == 1) {
+                        next.add(p);
+                    }
+                    break;
+                }
+            }
+        }
+        return next;
     }),
-    R_BING("兵", "bing", 0, (b, p) -> {
-        return null;
+    R_BING("兵", "bing", 0, (board, point) -> {
+        List<Point> next;
+        if (board.inJieNei(point, 0)) {
+            next = Collections.singletonList(point.toT(1));
+        } else {
+            next = Arrays.asList(point.toL(1), point.toR(1), point.toT(1));
+        }
+        return next.stream().filter(board::inBoard).collect(Collectors.toList());
     }),
-    B_JIANG("将", "jiang", 1, (b, p) -> {
+    B_JIANG("将", "jiang", 1, true, (b, p) -> {
         return null;
     }),
     B_SHI("士", "shi", 1, (b, p) -> {
@@ -97,12 +113,18 @@ public enum Chess {
     private final String py;
     private final int rb;
     private final NextPoint nextPoint;
+    private boolean king = false;
 
     Chess(String name, String py, int rb, NextPoint nextPoint) {
         this.name = name;
         this.py = py;
         this.rb = rb;
         this.nextPoint = nextPoint;
+    }
+
+    Chess(String name, String py, int rb, boolean king, NextPoint nextPoint) {
+        this(name, py, rb, nextPoint);
+        this.king = king;
     }
 
     public String getName() {
@@ -119,6 +141,10 @@ public enum Chess {
 
     public NextPoint getNextPoint() {
         return nextPoint;
+    }
+
+    public boolean isKing() {
+        return king;
     }
 
     @FunctionalInterface
