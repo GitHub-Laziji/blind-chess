@@ -2,10 +2,11 @@ package org.laziji.blindchess.ai;
 
 import org.laziji.blindchess.base.Board;
 import org.laziji.blindchess.base.Step;
+import org.laziji.blindchess.consts.Color;
 
 public interface AI {
 
-    void init(Board board, int rb) throws Exception;
+    void init(Board board, Color rb) throws Exception;
 
     void close() throws Exception;
 

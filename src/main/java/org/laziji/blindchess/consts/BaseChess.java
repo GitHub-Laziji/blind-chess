@@ -1,4 +1,7 @@
-package org.laziji.blindchess.base;
+package org.laziji.blindchess.consts;
+
+import org.laziji.blindchess.base.Board;
+import org.laziji.blindchess.base.Point;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -67,7 +70,7 @@ public enum BaseChess {
                     do {
                         p = p.to(dxy[0], dxy[1]);
                     } while (board.inBoard(p) && !board.hasChess(p));
-                    if (board.inBoard(p) && board.getChess(p).getRb() == 1 - rb) {
+                    if (board.inBoard(p) && board.getChess(p).getRb() == rb.opposite()) {
                         next.add(p);
                     }
                     break;
@@ -79,9 +82,9 @@ public enum BaseChess {
     BING((board, point, rb) -> {
         List<Point> next;
         if (board.inJieNei(point, rb)) {
-            next = Collections.singletonList(rb == 0 ? point.toT(1) : point.toB(1));
+            next = Collections.singletonList(rb == Color.RED ? point.toT(1) : point.toB(1));
         } else {
-            next = Arrays.asList(point.toL(1), point.toR(1), rb == 0 ? point.toT(1) : point.toB(1));
+            next = Arrays.asList(point.toL(1), point.toR(1), rb == Color.RED ? point.toT(1) : point.toB(1));
         }
         return next.stream().filter(board::inBoard).collect(Collectors.toList());
     });
@@ -103,7 +106,7 @@ public enum BaseChess {
         return king;
     }
 
-    public List<Point> getNextPoint(Board board, Point from, int rb) {
+    public List<Point> getNextPoint(Board board, Point from, Color rb) {
         Chess chess = board.getChess(from);
         if (chess == null || chess.getRb() != rb || chess.getBaseChess() != this) {
             return new ArrayList<>();
@@ -113,6 +116,6 @@ public enum BaseChess {
 
     @FunctionalInterface
     public interface NextPoint {
-        List<Point> get(Board board, Point from, int rb);
+        List<Point> get(Board board, Point from, Color rb);
     }
 }

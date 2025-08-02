@@ -6,9 +6,10 @@ import org.apache.hc.client5.http.impl.classic.CloseableHttpResponse;
 import org.apache.hc.client5.http.impl.classic.HttpClients;
 import org.apache.hc.core5.http.io.entity.EntityUtils;
 import org.laziji.blindchess.base.Board;
-import org.laziji.blindchess.base.Chess;
+import org.laziji.blindchess.consts.Chess;
 import org.laziji.blindchess.base.Point;
 import org.laziji.blindchess.base.Step;
+import org.laziji.blindchess.consts.Color;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -35,11 +36,11 @@ public class ApiAI implements AI {
     };
 
     private Board board;
-    private int rb;
+    private Color rb;
     private CloseableHttpClient httpClient;
 
     @Override
-    public void init(Board board, int rb) throws Exception {
+    public void init(Board board, Color rb) throws Exception {
         this.board = board;
         this.rb = rb;
         this.httpClient = HttpClients.createDefault();
@@ -73,7 +74,7 @@ public class ApiAI implements AI {
                 result.append(space);
             }
         }
-        String url = String.format("http://www.chessdb.cn/chessdb.php?action=querybest&board=%s%%20%s", result, rb == 0 ? "w" : "b");
+        String url = String.format("http://www.chessdb.cn/chessdb.php?action=querybest&board=%s%%20%s", result, rb == Color.RED ? "w" : "b");
         HttpGet httpGet = new HttpGet(url);
         try (CloseableHttpResponse response = httpClient.execute(httpGet)) {
             String cmd = EntityUtils.toString(response.getEntity());

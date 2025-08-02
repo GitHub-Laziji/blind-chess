@@ -11,9 +11,10 @@ import org.jline.reader.impl.completer.StringsCompleter;
 import org.jline.terminal.Terminal;
 import org.jline.terminal.TerminalBuilder;
 import org.laziji.blindchess.base.Board;
-import org.laziji.blindchess.base.Chess;
+import org.laziji.blindchess.consts.Chess;
 import org.laziji.blindchess.base.Point;
 import org.laziji.blindchess.base.Step;
+import org.laziji.blindchess.consts.Color;
 import org.laziji.blindchess.exception.StepException;
 
 import java.util.List;
@@ -22,12 +23,12 @@ import java.util.regex.Pattern;
 public class UserAI implements AI {
 
     private Board board;
-    private int rb;
+    private Color rb;
     private Terminal terminal;
     private LineReader lineReader;
 
     @Override
-    public void init(Board board, int rb) throws Exception {
+    public void init(Board board, Color rb) throws Exception {
         this.board = board;
         this.rb = rb;
         this.terminal = TerminalBuilder.terminal();
@@ -62,9 +63,12 @@ public class UserAI implements AI {
         Chess chess = null;
         if (cmd.matches("^[\\u4E00-\\u9FA5][1-9]..$")) {
             String c = getPingYin(String.valueOf(cmd.charAt(0)));
+            if ("che".equals(c)) {
+                c = "ju";
+            }
             ox = Integer.parseInt(String.valueOf(cmd.charAt(1))) - 1;
             for (oy = 0; oy < 10; oy++) {
-                chess = board.getChess(new Point(rb == 0 ? ox : (8 - ox), rb == 0 ? oy : (9 - oy)));
+                chess = board.getChess(new Point(rb == Color.RED ? ox : (8 - ox), rb == Color.RED ? oy : (9 - oy)));
                 if (chess != null && chess.getRb() == rb && chess.getPy().equals(c)) {
                     break;
                 }
@@ -102,7 +106,7 @@ public class UserAI implements AI {
             } else if (cmd.charAt(2) == '平') {
                 nx = Integer.parseInt(String.valueOf(cmd.charAt(3))) - 1;
             }
-            if (rb != 0) {
+            if (rb == Color.BLACK) {
                 ox = 8 - ox;
                 oy = 9 - oy;
                 nx = 8 - ox;

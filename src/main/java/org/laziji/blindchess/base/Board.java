@@ -1,9 +1,13 @@
 package org.laziji.blindchess.base;
 
 import org.laziji.blindchess.ai.AI;
+import org.laziji.blindchess.consts.Chess;
+import org.laziji.blindchess.consts.Color;
 import org.laziji.blindchess.exception.StepException;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class Board {
 
@@ -20,26 +24,26 @@ public class Board {
             {Chess.B_JU, Chess.B_MA, Chess.B_XIANG, Chess.B_SHI, Chess.B_JIANG, Chess.B_SHI, Chess.B_XIANG, Chess.B_MA, Chess.B_JU},
     };
 
-    private int rb = 0;
-    private final AI[] players = new AI[2];
+    private Color rb = Color.RED;
+    private final Map<Color, AI> players = new HashMap<>();
     private int stepCount = 0;
     private boolean done = false;
-    private int win = -1;
+    private Color win = null;
 
     public Board(AI rPlayer, AI bPlayer) {
-        players[0] = rPlayer;
-        players[1] = bPlayer;
+        players.put(Color.RED, rPlayer);
+        players.put(Color.BLACK, bPlayer);
     }
 
     public void run() throws Exception {
-        players[0].init(this, 0);
-        players[1].init(this, 1);
+        players.get(Color.RED).init(this, Color.RED);
+        players.get(Color.BLACK).init(this, Color.BLACK);
         while (!done) {
-            Step step = players[rb].queryBest(this);
+            Step step = players.get(rb).queryBest(this);
             if (step == null) {
-                win = 1 - rb;
+                win = rb.opposite();
                 done = true;
-                System.out.printf("%s胜\n", win == 0 ? "红" : "黑");
+                System.out.printf("%s胜\n", win.getName());
                 break;
             }
             try {
@@ -50,8 +54,8 @@ public class Board {
                 e.printStackTrace();
             }
         }
-        players[0].close();
-        players[0].close();
+        players.get(Color.RED).close();
+        players.get(Color.BLACK).close();
     }
 
     public Chess getChess(Point point) {
@@ -62,7 +66,7 @@ public class Board {
         return map[y][x];
     }
 
-    public boolean hasChess(Point point, int rb) {
+    public boolean hasChess(Point point, Color rb) {
         return map[point.getY()][point.getX()] != null && map[point.getY()][point.getX()].getRb() == rb;
     }
 
@@ -74,16 +78,16 @@ public class Board {
         return point.getX() >= 0 && point.getX() < 9 && point.getY() >= 0 && point.getY() < 10;
     }
 
-    public boolean inJiuGong(Point point, int rb) {
-        if (rb == 0) {
+    public boolean inJiuGong(Point point, Color rb) {
+        if (rb == Color.RED) {
             return point.getX() >= 3 && point.getX() < 6 && point.getY() >= 0 && point.getY() < 3;
         } else {
             return point.getX() >= 3 && point.getX() < 6 && point.getY() >= 7 && point.getY() < 10;
         }
     }
 
-    public boolean inJieNei(Point point, int rb) {
-        if (rb == 0) {
+    public boolean inJieNei(Point point, Color rb) {
+        if (rb == Color.RED) {
             return inBoard(point) && point.getY() < 5;
         } else {
             return inBoard(point) && point.getY() >= 5;
@@ -92,10 +96,10 @@ public class Board {
 
     private void active(Step step) throws Exception {
         stepVerify(step);
-        System.out.printf("%d\t%s: %s\n", ++stepCount, rb == 0 ? "红" : "黑", stepToChCmd(step));
+        System.out.printf("第%04d步 %s: %s\n", ++stepCount, rb.getName(), stepToChCmd(step));
         map[step.getTo().getY()][step.getTo().getX()] = map[step.getFrom().getY()][step.getFrom().getX()];
         map[step.getFrom().getY()][step.getFrom().getX()] = null;
-        rb = 1 - rb;
+        rb = rb.opposite();
         finalVerify();
     }
 
@@ -125,12 +129,12 @@ public class Board {
         Chess from = map[oy][ox];
         StringBuilder cmd = new StringBuilder();
         cmd.append(from.getName());
-        cmd.append(from.getRb() == 0 ? (ox + 1) : (8 - ox + 1));
+        cmd.append(from.getRb() == Color.RED ? (ox + 1) : (8 - ox + 1));
         if (oy == ny) {
             cmd.append("平");
-            cmd.append(from.getRb() == 0 ? (nx + 1) : (8 - nx + 1));
+            cmd.append(from.getRb() == Color.RED ? (nx + 1) : (8 - nx + 1));
         } else if (oy < ny) {
-            if (from.getRb() == 0) {
+            if (from.getRb() == Color.RED) {
                 cmd.append("进");
             } else {
                 cmd.append("退");
@@ -138,10 +142,10 @@ public class Board {
             if (ox == nx) {
                 cmd.append(ny - oy);
             } else {
-                cmd.append(from.getRb() == 0 ? (nx + 1) : (8 - nx + 1));
+                cmd.append(from.getRb() == Color.RED ? (nx + 1) : (8 - nx + 1));
             }
         } else {
-            if (from.getRb() == 0) {
+            if (from.getRb() == Color.RED) {
                 cmd.append("退");
             } else {
                 cmd.append("进");
@@ -149,7 +153,7 @@ public class Board {
             if (ox == nx) {
                 cmd.append(oy - ny);
             } else {
-                cmd.append(from.getRb() == 0 ? (nx + 1) : (8 - nx + 1));
+                cmd.append(from.getRb() == Color.RED ? (nx + 1) : (8 - nx + 1));
             }
         }
         return cmd.toString();
