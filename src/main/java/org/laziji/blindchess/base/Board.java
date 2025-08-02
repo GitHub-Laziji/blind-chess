@@ -101,25 +101,20 @@ public class Board {
 
     private void stepVerify(Step step) {
         Chess from = getChess(step.getFrom());
-        Chess to = getChess(step.getTo());
         if (from == null) {
             throw new StepException("ERROR: 起始点不存在棋子");
         }
         if (from.getRb() != rb) {
             throw new StepException("ERROR: 起始点为对方棋子");
         }
-        if (to != null && to.getRb() == from.getRb()) {
-            throw new StepException("ERROR: 目标点已存在友方棋子");
-        }
-
-        List<Point> points = getChess(step.getFrom()).getNextPoint().get(this, step.getFrom());
+        List<Point> points = getChess(step.getFrom()).getNextPoint(this, step.getFrom());
         if (!points.contains(step.getTo())) {
             throw new StepException("ERROR: 走棋不符合规范");
         }
     }
 
     private void finalVerify() {
-
+        // TODO
     }
 
     private String stepToChCmd(Step step) {
