@@ -15,7 +15,7 @@ public enum Chess {
             }
             do {
                 o = o.toT(1);
-            } while (board.inBoard(o) && !board.hasChess(o));
+            } while (board.inBoard(o) && (!board.hasChess(o) || o.equals(point)));
             return !board.inBoard(o) || !board.getChess(o).isKing();
         }).collect(Collectors.toList());
     }),
@@ -87,26 +87,85 @@ public enum Chess {
         }
         return next.stream().filter(board::inBoard).collect(Collectors.toList());
     }),
-    B_JIANG("将", "jiang", 1, true, (b, p) -> {
-        return null;
+    B_JIANG("将", "jiang", 1, true, (board, point) -> {
+        List<Point> next = Arrays.asList(point.toL(1), point.toR(1), point.toT(1), point.toB(1));
+        return next.stream().filter(o -> {
+            if (!board.inJiuGong(o, 1) && board.hasChess(o, 1)) {
+                return false;
+            }
+            do {
+                o = o.toT(1);
+            } while (board.inBoard(o) && (!board.hasChess(o) || o.equals(point)));
+            return !board.inBoard(o) || !board.getChess(o).isKing();
+        }).collect(Collectors.toList());
     }),
-    B_SHI("士", "shi", 1, (b, p) -> {
-        return null;
+    B_SHI("士", "shi", 1, (board, point) -> {
+        List<Point> next = Arrays.asList(point.toT(1).toL(1), point.toT(1).toR(1), point.toB(1).toL(1), point.toB(1).toR(1));
+        return next.stream().filter(o -> board.inJiuGong(o, 1) && !board.hasChess(o, 1)).collect(Collectors.toList());
     }),
-    B_XIANG("象", "xiang", 1, (b, p) -> {
-        return null;
+    B_XIANG("象", "xiang", 1, (board, point) -> {
+        List<Point> next = Arrays.asList(point.toT(2).toL(2), point.toT(2).toR(2), point.toB(2).toL(2), point.toB(2).toR(2));
+        return next.stream().filter(o -> {
+            if (!(board.inJieNei(o, 1) && !board.hasChess(o, 1))) {
+                return false;
+            }
+            return !board.hasChess(new Point((o.getX() + point.getX()) / 2, (o.getY() + point.getY()) / 2));
+        }).collect(Collectors.toList());
     }),
-    B_MA("马", "ma", 1, (b, p) -> {
-        return null;
+    B_MA("马", "ma", 1, (board, point) -> {
+        List<Point> next = Arrays.asList(point.toT(2).toL(1), point.toT(2).toR(1), point.toT(1).toL(2), point.toT(1).toR(2), point.toB(2).toL(1), point.toB(2).toR(1), point.toB(1).toL(2), point.toB(1).toR(2));
+        return next.stream().filter(o -> {
+            if (!(board.inBoard(o) && !board.hasChess(o, 1))) {
+                return false;
+            }
+            return !board.hasChess(new Point((int) Math.floor((o.getX() - point.getX()) / 2d) + point.getX(), (int) Math.floor((o.getY() - point.getY()) / 2d) + point.getY()));
+        }).collect(Collectors.toList());
     }),
-    B_JU("车", "che", 1, (b, p) -> {
-        return null;
+    B_JU("车", "ju", 1, (board, point) -> {
+        List<Point> next = new ArrayList<>();
+        for (int[] dxy : new int[][]{{1, 0}, {-1, 0}, {0, 1}, {0, -1}}) {
+            Point p = point;
+            while (board.inBoard(p)) {
+                p = p.to(dxy[0], dxy[1]);
+                if (!board.hasChess(p, 1)) {
+                    next.add(p);
+                }
+                if (board.hasChess(p)) {
+                    break;
+                }
+            }
+        }
+        return next;
     }),
-    B_PAO("砲", "pao", 1, (b, p) -> {
-        return null;
+    B_PAO("砲", "pao", 1, (board, point) -> {
+        List<Point> next = new ArrayList<>();
+        for (int[] dxy : new int[][]{{1, 0}, {-1, 0}, {0, 1}, {0, -1}}) {
+            Point p = point;
+            while (board.inBoard(p)) {
+                p = p.to(dxy[0], dxy[1]);
+                if (!board.hasChess(p)) {
+                    next.add(p);
+                } else {
+                    do {
+                        p = p.to(dxy[0], dxy[1]);
+                    } while (board.inBoard(p) && !board.hasChess(p));
+                    if (board.inBoard(p) && board.getChess(p).getRb() == 0) {
+                        next.add(p);
+                    }
+                    break;
+                }
+            }
+        }
+        return next;
     }),
-    B_ZU("卒", "zu", 1, (b, p) -> {
-        return null;
+    B_ZU("卒", "zu", 1, (board, point) -> {
+        List<Point> next;
+        if (board.inJieNei(point, 1)) {
+            next = Collections.singletonList(point.toB(1));
+        } else {
+            next = Arrays.asList(point.toL(1), point.toR(1), point.toB(1));
+        }
+        return next.stream().filter(board::inBoard).collect(Collectors.toList());
     });
 
     private final String name;
