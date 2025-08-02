@@ -18,7 +18,7 @@ public enum BaseChess {
                 return false;
             }
             do {
-                o = o.toT(1);
+                o = rb == Color.RED ? o.toT(1) : o.toB(1);
             } while (board.inBoard(o) && (!board.hasChess(o) || o.equals(point)));
             return !board.inBoard(o) || !board.getChess(o).getBaseChess().isKing();
         }).collect(Collectors.toList());
