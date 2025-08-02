@@ -31,7 +31,6 @@ public class Board {
         players[1] = bPlayer;
     }
 
-
     public void run() throws Exception {
         players[0].init(this, 0);
         players[1].init(this, 1);
@@ -61,6 +60,34 @@ public class Board {
 
     public Chess getChess(int x, int y) {
         return map[y][x];
+    }
+
+    public boolean hasChess(Point point, int rb) {
+        return map[point.getY()][point.getX()] != null && map[point.getY()][point.getX()].getRb() == rb;
+    }
+
+    public boolean hasChess(Point point) {
+        return map[point.getY()][point.getX()] != null;
+    }
+
+    public boolean inBoard(Point point) {
+        return point.getX() >= 0 && point.getX() < 9 && point.getY() >= 0 && point.getY() < 10;
+    }
+
+    public boolean inJiuGong(Point point, int rb) {
+        if (rb == 0) {
+            return point.getX() >= 3 && point.getX() < 6 && point.getY() >= 0 && point.getY() < 3;
+        } else {
+            return point.getX() >= 3 && point.getX() < 6 && point.getY() >= 7 && point.getY() < 10;
+        }
+    }
+
+    public boolean inJieNei(Point point, int rb) {
+        if (rb == 0) {
+            return inBoard(point) && point.getY() < 5;
+        } else {
+            return inBoard(point) && point.getY() >= 5;
+        }
     }
 
     private void active(Step step) throws Exception {

@@ -31,6 +31,22 @@ public class Point {
         this.y = y;
     }
 
+    public Point toL(int n) {
+        return new Point(x + n, y);
+    }
+
+    public Point toR(int n) {
+        return new Point(x - n, y);
+    }
+
+    public Point toT(int n) {
+        return new Point(x, y + n);
+    }
+
+    public Point toB(int n) {
+        return new Point(x, y - n);
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
