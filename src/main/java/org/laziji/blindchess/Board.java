@@ -23,6 +23,7 @@ public class Board {
     private final AI[] players = new AI[2];
     private int stepCount = 0;
     private boolean done = false;
+    private int win = -1;
 
     public Board(AI rPlayer, AI bPlayer) {
         players[0] = rPlayer;
@@ -49,8 +50,14 @@ public class Board {
     void run() throws Exception {
         players[0].init(this, 0);
         players[1].init(this, 1);
-        while (done) {
+        while (!done) {
             Step step = players[rb].queryBest(this);
+            if (step == null) {
+                win = 1 - rb;
+                done = true;
+                System.out.printf("%s胜\n", win == 0 ? "红" : "黑");
+                break;
+            }
             try {
                 active(step);
             } catch (Exception e) {
