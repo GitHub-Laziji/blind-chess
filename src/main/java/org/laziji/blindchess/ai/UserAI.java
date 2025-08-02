@@ -45,7 +45,7 @@ public class UserAI implements AI {
     }
 
     @Override
-    public Step queryBest(Board board) throws Exception {
+    public Step queryBest() throws Exception {
         String cmd = lineReader.readLine("象棋 > ");
         if ("exit".equals(cmd)) {
             return null;
@@ -77,7 +77,7 @@ public class UserAI implements AI {
                 throw new StepException(String.format("ERROR: [%c]路线上没有棋子[%s]", cmd.charAt(1), c));
             }
         } else if (cmd.matches("^([前中后][\\u4E00-\\u9FA5]|[一二三四五]兵)..$")) {
-
+            // TODO
         } else {
             throw new StepException(String.format("ERROR: [%s]走棋不符合规范", cmd));
         }

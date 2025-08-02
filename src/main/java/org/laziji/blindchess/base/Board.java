@@ -39,7 +39,7 @@ public class Board {
         players.get(Color.RED).init(this, Color.RED);
         players.get(Color.BLACK).init(this, Color.BLACK);
         while (!done) {
-            Step step = players.get(rb).queryBest(this);
+            Step step = players.get(rb).queryBest();
             if (step == null) {
                 win = rb.opposite();
                 done = true;
@@ -128,6 +128,8 @@ public class Board {
         int ny = step.getTo().getY();
         Chess from = map[oy][ox];
         StringBuilder cmd = new StringBuilder();
+        int count=0;
+        // TODO
         cmd.append(from.getName());
         cmd.append(from.getRb() == Color.RED ? (ox + 1) : (8 - ox + 1));
         if (oy == ny) {

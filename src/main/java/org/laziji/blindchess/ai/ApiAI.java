@@ -52,7 +52,7 @@ public class ApiAI implements AI {
     }
 
     @Override
-    public Step queryBest(Board board) throws Exception {
+    public Step queryBest() throws Exception {
         StringBuilder result = new StringBuilder();
         for (int y = 9; y >= 0; y--) {
             if (y < 9) {
@@ -78,16 +78,14 @@ public class ApiAI implements AI {
         HttpGet httpGet = new HttpGet(url);
         try (CloseableHttpResponse response = httpClient.execute(httpGet)) {
             String cmd = EntityUtils.toString(response.getEntity());
-            return enCmdToXy(cmd);
+            if (!cmd.startsWith("move:")) {
+                return null;
+            }
+            int ox = cmd.charAt(5) - 'a';
+            int oy = cmd.charAt(6) - '0';
+            int nx = cmd.charAt(7) - 'a';
+            int ny = cmd.charAt(8) - '0';
+            return new Step(new Point(ox, oy), new Point(nx, ny));
         }
-    }
-
-
-    private Step enCmdToXy(String cmd) throws Exception {
-        int ox = cmd.charAt(5) - 'a';
-        int oy = cmd.charAt(6) - '0';
-        int nx = cmd.charAt(7) - 'a';
-        int ny = cmd.charAt(8) - '0';
-        return new Step(new Point(ox, oy), new Point(nx, ny));
     }
 }

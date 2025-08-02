@@ -10,6 +10,6 @@ public interface AI {
 
     void close() throws Exception;
 
-    Step queryBest(Board board) throws Exception;
+    Step queryBest() throws Exception;
 
 }
