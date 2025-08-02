@@ -1,59 +1,83 @@
 package org.laziji.blindchess;
 
-import com.google.common.collect.ImmutableList;
+import org.laziji.blindchess.bean.Point;
 
 import java.util.List;
 
 public enum Chess {
-    R_SHUAI("K", "帥", ImmutableList.of("shuai"), 0),
-    R_SHI("A", "仕", ImmutableList.of("shi"), 0),
-    R_XIANG("B", "相", ImmutableList.of("xiang"), 0),
-    R_MA("N", "馬", ImmutableList.of("ma"), 0),
-    R_JU("R", "車", ImmutableList.of("che", "ju"), 0),
-    R_PAO("C", "炮", ImmutableList.of("pao"), 0),
-    R_BING("P", "兵", ImmutableList.of("bing"), 0),
-    B_JIANG("k", "将", ImmutableList.of("jiang"), 1),
-    B_SHI("a", "士", ImmutableList.of("shi"), 1),
-    B_XIANG("b", "象", ImmutableList.of("xiang"), 1),
-    B_MA("n", "马", ImmutableList.of("ma"), 1),
-    B_JU("r", "车", ImmutableList.of("che", "ju"), 1),
-    B_PAO("c", "砲", ImmutableList.of("pao"), 1),
-    B_ZU("p", "卒", ImmutableList.of("zu"), 1);
-
-    private final String code;
-    private final String name;
-    private final List<String> py;
-    private final Integer rb;
-
-    public static Chess find(String code, String name, String py, Integer rb) {
-        for (Chess chess : values()) {
-            if ((code == null || chess.code.equals(code)) && (name == null || chess.name.equals(name)) && (py == null || chess.py.contains(py)) && (rb == null || chess.rb.equals(rb))) {
-                return chess;
-            }
-        }
+    R_SHUAI("帥", "shuai", 0, (b, p) -> {
         return null;
-    }
+    }),
+    R_SHI("仕", "shi", 0, (b, p) -> {
+        return null;
+    }),
+    R_XIANG("相", "xiang", 0, (b, p) -> {
+        return null;
+    }),
+    R_MA("馬", "ma", 0, (b, p) -> {
+        return null;
+    }),
+    R_JU("車", "che", 0, (b, p) -> {
+        return null;
+    }),
+    R_PAO("炮", "pao", 0, (b, p) -> {
+        return null;
+    }),
+    R_BING("兵", "bing", 0, (b, p) -> {
+        return null;
+    }),
+    B_JIANG("将", "jiang", 1, (b, p) -> {
+        return null;
+    }),
+    B_SHI("士", "shi", 1, (b, p) -> {
+        return null;
+    }),
+    B_XIANG("象", "xiang", 1, (b, p) -> {
+        return null;
+    }),
+    B_MA("马", "ma", 1, (b, p) -> {
+        return null;
+    }),
+    B_JU("车", "che", 1, (b, p) -> {
+        return null;
+    }),
+    B_PAO("砲", "pao", 1, (b, p) -> {
+        return null;
+    }),
+    B_ZU("卒", "zu", 1, (b, p) -> {
+        return null;
+    });
 
-    Chess(String code, String name, List<String> py, Integer rb) {
-        this.code = code;
+    private final String name;
+    private final String py;
+    private final Integer rb;
+    private final NextPoint nextPoint;
+
+    Chess(String name, String py, Integer rb, NextPoint nextPoint) {
         this.name = name;
         this.py = py;
         this.rb = rb;
-    }
-
-    public String getCode() {
-        return code;
+        this.nextPoint = nextPoint;
     }
 
     public String getName() {
         return name;
     }
 
-    public List<String> getPy() {
+    public String getPy() {
         return py;
     }
 
     public Integer getRb() {
         return rb;
+    }
+
+    public NextPoint getNextPoint() {
+        return nextPoint;
+    }
+
+    @FunctionalInterface
+    public interface NextPoint {
+        List<Point> get(Board board, Point from);
     }
 }

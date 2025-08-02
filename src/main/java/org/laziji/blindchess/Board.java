@@ -1,74 +1,72 @@
 package org.laziji.blindchess;
 
-import net.sourceforge.pinyin4j.PinyinHelper;
-import net.sourceforge.pinyin4j.format.HanyuPinyinCaseType;
-import net.sourceforge.pinyin4j.format.HanyuPinyinOutputFormat;
-import net.sourceforge.pinyin4j.format.HanyuPinyinToneType;
-import net.sourceforge.pinyin4j.format.HanyuPinyinVCharType;
+import org.laziji.blindchess.ai.AI;
+import org.laziji.blindchess.bean.Point;
+import org.laziji.blindchess.bean.Step;
 
 public class Board {
 
-    private final String[][] map = new String[][]{
-            {"R", "N", "B", "A", "K", "A", "B", "N", "R"},
-            {" ", " ", " ", " ", " ", " ", " ", " ", " "},
-            {" ", "C", " ", " ", " ", " ", " ", "C", " "},
-            {"P", " ", "P", " ", "P", " ", "P", " ", "P"},
-            {" ", " ", " ", " ", " ", " ", " ", " ", " "},
-            {" ", " ", " ", " ", " ", " ", " ", " ", " "},
-            {"p", " ", "p", " ", "p", " ", "p", " ", "p"},
-            {" ", "c", " ", " ", " ", " ", " ", "c", " "},
-            {" ", " ", " ", " ", " ", " ", " ", " ", " "},
-            {"r", "n", "b", "a", "k", "a", "b", "n", "r"},
+    private final Chess[][] map = new Chess[][]{
+            {Chess.R_JU, Chess.R_MA, Chess.R_XIANG, Chess.R_SHI, Chess.R_SHUAI, Chess.R_SHI, Chess.R_XIANG, Chess.R_MA, Chess.R_JU},
+            {null, null, null, null, null, null, null, null, null},
+            {null, Chess.R_PAO, null, null, null, null, null, Chess.R_PAO, null},
+            {Chess.R_BING, null, Chess.R_BING, null, Chess.R_BING, null, Chess.R_BING, null, Chess.R_BING},
+            {null, null, null, null, null, null, null, null, null},
+            {null, null, null, null, null, null, null, null, null},
+            {Chess.B_ZU, null, Chess.B_ZU, null, Chess.B_ZU, null, Chess.B_ZU, null, Chess.B_ZU},
+            {null, Chess.B_PAO, null, null, null, null, null, Chess.B_PAO, null},
+            {null, null, null, null, null, null, null, null, null},
+            {Chess.B_JU, Chess.B_MA, Chess.B_XIANG, Chess.B_SHI, Chess.B_JIANG, Chess.B_SHI, Chess.B_XIANG, Chess.B_MA, Chess.B_JU},
     };
 
-    private Integer rb = 0;
-    private Integer stepCount = 0;
+    private int rb = 0;
+    private final AI[] players = new AI[2];
+    private int stepCount = 0;
+    private boolean done = false;
 
-    public Board() {
-
+    public Board(AI rPlayer, AI bPlayer) {
+        players[0] = rPlayer;
+        players[1] = bPlayer;
     }
 
-    public void active(int ox, int oy, int nx, int ny) throws Exception {
-        System.out.printf("%d\t%s: %s\n", ++stepCount, rb == 0 ? "红" : "黑", xyToChCmd(ox, oy, nx, ny));
-        map[ny][nx] = map[oy][ox];
-        map[oy][ox] = " ";
+    public void active(Step step) throws Exception {
+        stepVerify(step);
+        System.out.printf("%d\t%s: %s\n", ++stepCount, rb == 0 ? "红" : "黑", xyToChCmd(step));
+        map[step.getTo().getY()][step.getTo().getX()] = map[step.getFrom().getY()][step.getFrom().getX()];
+        map[step.getFrom().getY()][step.getFrom().getX()] = null;
         rb = 1 - rb;
+        finalVerify();
     }
 
-    public void activeByEnCmd(String cmd) throws Exception {
-        int[] xy = enCmdToXy(cmd);
+    void stepVerify(Step step) {
 
-        active(xy[0], xy[1], xy[2], xy[3]);
     }
 
-    public void activeByChCmd(String cmd) throws Exception {
-        int[] xy = chCmdToXy(cmd, 0);
-        active(xy[0], xy[1], xy[2], xy[3]);
+    void finalVerify() {
+
     }
 
-    public String getStatus() {
-        StringBuilder result = new StringBuilder();
-        for (int y = 9; y >= 0; y--) {
-            if (y < 9) {
-                result.append('/');
-            }
-            int space = 0;
-            for (int x = 0; x < 9; x++) {
-                if (" ".equals(map[y][x])) {
-                    space++;
-                    continue;
-                }
-                if (space > 0) {
-                    result.append(space);
-                    space = 0;
-                }
-                result.append(map[y][x]);
-            }
-            if (space > 0) {
-                result.append(space);
+    void run() throws Exception {
+        players[0].init(this, 0);
+        players[1].init(this, 1);
+        while (done) {
+            Step step = players[rb].queryBest(this);
+            try {
+                active(step);
+            } catch (Exception e) {
+                e.printStackTrace();
             }
         }
-        return result.toString();
+        players[0].close();
+        players[0].close();
+    }
+
+    public Chess getChess(Point point) {
+        return map[point.getY()][point.getX()];
+    }
+
+    public Chess getChess(int x, int y) {
+        return map[y][x];
     }
 
     public String getRb() {
@@ -84,117 +82,12 @@ public class Board {
         }
     }
 
-    private String getPingYin(String val) {
-        try {
-            HanyuPinyinOutputFormat format = new HanyuPinyinOutputFormat();
-            format.setCaseType(HanyuPinyinCaseType.LOWERCASE);
-            format.setToneType(HanyuPinyinToneType.WITHOUT_TONE);
-            format.setVCharType(HanyuPinyinVCharType.WITH_V);
-            StringBuilder output = new StringBuilder();
-            char[] input = val.trim().toCharArray();
-            for (char c : input) {
-                if (Character.toString(c).matches("[\\u4E00-\\u9FA5]+")) {
-                    String[] temp = PinyinHelper.toHanyuPinyinStringArray(c, format);
-                    output.append(temp[0]);
-                    continue;
-                }
-                output.append(c);
-            }
-            return output.toString();
-        } catch (Exception e) {
-            e.printStackTrace();
-            throw new RuntimeException();
-        }
-    }
-
-
-    private int[] chCmdToXy(String cmd, Integer rb) throws Exception {
-        cmd = cmd.replaceAll("\\s", "");
-        if (cmd.length() != 4) {
-            throw new Exception(String.format("ERROR: [%s]走棋不符合规范", cmd));
-        }
-        int ox = -1;
-        int oy = -1;
-        Chess chess = null;
-        if (cmd.matches("^[\\u4E00-\\u9FA5][1-9]..$")) {
-            String c = getPingYin(String.valueOf(cmd.charAt(0)));
-            ox = Integer.parseInt(String.valueOf(cmd.charAt(1))) - 1;
-            for (oy = 0; oy < 10; oy++) {
-                chess = Chess.find(map[rb == 0 ? oy : (9 - oy)][rb == 0 ? ox : (8 - ox)], null, c, rb);
-                if (chess != null) {
-                    break;
-                }
-            }
-            if (oy == 10) {
-                throw new Exception(String.format("ERROR: [%c]路线上没有棋子[%s]", cmd.charAt(1), c));
-            }
-        } else if (cmd.matches("^([前中后][\\u4E00-\\u9FA5]|[一二三四五]兵)..$")) {
-
-        } else {
-            throw new Exception(String.format("ERROR: [%s]走棋不符合规范", cmd));
-        }
-
-        int nx = ox;
-        int ny = oy;
-        if (cmd.matches("^..[进平退][1-9]$")) {
-            if (cmd.charAt(2) == '进') {
-                if (chess == Chess.R_SHI) {
-                    ny += 1;
-                    nx = Integer.parseInt(String.valueOf(cmd.charAt(3))) - 1;
-                } else if (chess == Chess.R_XIANG) {
-                    ny += 2;
-                    nx = Integer.parseInt(String.valueOf(cmd.charAt(3))) - 1;
-                } else if (chess == Chess.R_MA) {
-                    ny += 3 - Math.abs(Integer.parseInt(String.valueOf(cmd.charAt(3))) - Integer.parseInt(String.valueOf(cmd.charAt(1))));
-                    nx = Integer.parseInt(String.valueOf(cmd.charAt(3))) - 1;
-                } else {
-                    ny += Integer.parseInt(String.valueOf(cmd.charAt(3)));
-                }
-            } else if (cmd.charAt(2) == '平') {
-                nx = Integer.parseInt(String.valueOf(cmd.charAt(3))) - 1;
-            } else if (cmd.charAt(2) == '退') {
-                if (chess == Chess.R_SHI) {
-                    ny -= 1;
-                    nx = Integer.parseInt(String.valueOf(cmd.charAt(3))) - 1;
-                } else if (chess == Chess.R_XIANG) {
-                    ny -= 2;
-                    nx = Integer.parseInt(String.valueOf(cmd.charAt(3))) - 1;
-                } else if (chess == Chess.R_MA) {
-                    ny -= 3 - Math.abs(Integer.parseInt(String.valueOf(cmd.charAt(3))) - Integer.parseInt(String.valueOf(cmd.charAt(1))));
-                    nx = Integer.parseInt(String.valueOf(cmd.charAt(3))) - 1;
-                } else {
-                    ny -= Integer.parseInt(String.valueOf(cmd.charAt(3)));
-                }
-            }
-            if (rb != 0) {
-                ox = 8 - ox;
-                oy = 9 - oy;
-                nx = 8 - ox;
-                ny = 8 - ny;
-            }
-            return new int[]{ox, oy, nx, ny};
-        } else {
-            throw new Exception(String.format("ERROR: [%s]走棋不符合规范", cmd));
-        }
-    }
-
-    private int[] enCmdToXy(String cmd) throws Exception {
-        int ox = cmd.charAt(5) - 'a';
-        int oy = cmd.charAt(6) - '0';
-        int nx = cmd.charAt(7) - 'a';
-        int ny = cmd.charAt(8) - '0';
-        return new int[]{ox, oy, nx, ny};
-    }
-
-    private String xyToChCmd(int ox, int oy, int nx, int ny) throws Exception {
-        Chess from = Chess.find(map[oy][ox], null, null, null);
-        Chess to = Chess.find(map[ny][nx], null, null, null);
-        if (from == null) {
-            throw new Exception(String.format("命令错误。(%d,%d)不存在棋子", ox, oy));
-        }
-        if (to != null && to.getRb().equals(from.getRb())) {
-            throw new Exception(String.format("命令错误。(%d,%d)与(%d,%d)棋子属于同一方", ox, oy, nx, ny));
-        }
+    private String xyToChCmd(Step step) throws Exception {
+        int ox = step.getFrom().getX();
+        int oy = step.getFrom().getY();
+        int nx = step.getTo().getX();
+        int ny = step.getTo().getY();
+        Chess from = map[oy][ox];
         StringBuilder cmd = new StringBuilder();
         cmd.append(from.getName());
         cmd.append(from.getRb() == 0 ? (ox + 1) : (8 - ox + 1));
