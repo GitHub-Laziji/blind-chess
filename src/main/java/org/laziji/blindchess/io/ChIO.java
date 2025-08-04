@@ -10,18 +10,23 @@ import org.laziji.blindchess.base.Point;
 import org.laziji.blindchess.base.Step;
 import org.laziji.blindchess.consts.Chess;
 import org.laziji.blindchess.consts.Color;
+import org.laziji.blindchess.consts.WinType;
 import org.laziji.blindchess.exception.StepException;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class ChIO implements IO {
 
     @Override
-    public Step input(String cmd, Board board, Color rb) {
+    public Step input(Board board, String cmd) {
         cmd = cmd.replaceAll("\\s", "");
         if (cmd.length() != 4) {
             throw new StepException(String.format("ERROR: [%s]走棋不符合规范", cmd));
         }
-        int ox = -1;
-        int oy = -1;
+        Color rb = board.getRb();
+        int ox;
+        int oy;
         Chess chess = null;
         if (cmd.matches("^[\\u4E00-\\u9FA5][1-9]..$")) {
             String c = getPingYin(String.valueOf(cmd.charAt(0)));
@@ -39,7 +44,53 @@ public class ChIO implements IO {
                 throw new StepException(String.format("ERROR: [%c]路线上没有棋子[%s]", cmd.charAt(1), c));
             }
         } else if (cmd.matches("^([前中后][\\u4E00-\\u9FA5]|[一二三四五]兵)..$")) {
-            // TODO
+            String p = getPingYin(String.valueOf(cmd.charAt(0)));
+            String c = getPingYin(String.valueOf(cmd.charAt(1)));
+            Chess from = null;
+            for (Chess t : Chess.values()) {
+                if (t.getRb() == rb && t.getPy().equals(c)) {
+                    from = t;
+                }
+            }
+            if (from == null) {
+                throw new StepException(String.format("ERROR: 不存在棋子[%s]", cmd.charAt(1)));
+            }
+            List<Point> points = new ArrayList<>();
+            for (int x = 0; x < 9; x++) {
+                int colCount = 0;
+                List<Point> col = new ArrayList<>();
+                for (int y = 9; y >= 0; y--) {
+                    if (board.getChess(from.getRb() == Color.RED ? x : (8 - x), from.getRb() == Color.RED ? y : (9 - y)) == from) {
+                        colCount++;
+                        col.add(new Point(x, y));
+                    }
+                }
+                if (colCount >= 2) {
+                    points.addAll(col);
+                }
+            }
+            if (points.isEmpty()) {
+                throw new StepException(String.format("ERROR: [%s]走棋不符合规范", cmd));
+            }
+            String[] t;
+            if (points.size() <= 2) {
+                t = new String[]{"前", "后"};
+            } else if (points.size() == 3) {
+                t = new String[]{"前", "中", "后"};
+            } else {
+                t = new String[]{"一", "二", "三", "四", "五"};
+            }
+            Integer index = null;
+            for (int i = 0; i < t.length; i++) {
+                if (t[i].equals(p)) {
+                    index = i;
+                }
+            }
+            if (index == null) {
+                throw new StepException(String.format("ERROR: [%s]走棋不符合规范", cmd));
+            }
+            ox = points.get(index).getX();
+            oy = points.get(index).getY();
         } else {
             throw new StepException(String.format("ERROR: [%s]走棋不符合规范", cmd));
         }
@@ -81,7 +132,7 @@ public class ChIO implements IO {
     }
 
     @Override
-    public String output(Step step, Board board, Color rb) {
+    public String output(Board board, Step step) {
         int ox = step.getFrom().getX();
         int oy = step.getFrom().getY();
         int nx = step.getTo().getX();
@@ -154,6 +205,30 @@ public class ChIO implements IO {
             }
         }
         return cmd.toString();
+    }
+
+    @Override
+    public void printStep(Board board, Step step) {
+        System.out.printf("第%04d步 %s: %s\n", board.getStepCount() + 1, board.getRb().getName(), output(board, step));
+    }
+
+    @Override
+    public void printWin(Color rb, WinType winType) {
+        System.out.printf("%s胜", rb.getName());
+        if (winType == WinType.STALEMATE) {
+            System.out.print("（困毙）");
+        }
+        System.out.println();
+    }
+
+    @Override
+    public void printBoard(Board board) {
+        for (int y = 9; y >= 0; y--) {
+            for (int x = 8; x >= 0; x--) {
+                System.out.printf("%s\t", board.getChess(x, y) == null ? " " : board.getChess(x, y).getName());
+            }
+            System.out.println();
+        }
     }
 
 

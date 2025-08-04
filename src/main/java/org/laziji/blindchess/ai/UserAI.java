@@ -1,21 +1,13 @@
 package org.laziji.blindchess.ai;
 
-import net.sourceforge.pinyin4j.PinyinHelper;
-import net.sourceforge.pinyin4j.format.HanyuPinyinCaseType;
-import net.sourceforge.pinyin4j.format.HanyuPinyinOutputFormat;
-import net.sourceforge.pinyin4j.format.HanyuPinyinToneType;
-import net.sourceforge.pinyin4j.format.HanyuPinyinVCharType;
 import org.apache.commons.lang3.StringUtils;
 import org.jline.reader.*;
 import org.jline.reader.impl.completer.StringsCompleter;
 import org.jline.terminal.Terminal;
 import org.jline.terminal.TerminalBuilder;
 import org.laziji.blindchess.base.Board;
-import org.laziji.blindchess.consts.Chess;
-import org.laziji.blindchess.base.Point;
 import org.laziji.blindchess.base.Step;
 import org.laziji.blindchess.consts.Color;
-import org.laziji.blindchess.exception.StepException;
 import org.laziji.blindchess.io.ChIO;
 import org.laziji.blindchess.io.IO;
 
@@ -49,12 +41,12 @@ public class UserAI implements AI {
 
     @Override
     public Step queryBest() throws Exception {
-//        board.print();
+//        io.printBoard(board);
         String cmd = lineReader.readLine("象棋 > ");
         if ("exit".equals(cmd)) {
             return null;
         }
-        return io.input(cmd, board, rb);
+        return io.input(board, cmd);
     }
 
 

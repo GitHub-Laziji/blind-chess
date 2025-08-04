@@ -5,6 +5,7 @@ import org.laziji.blindchess.ai.AI;
 import org.laziji.blindchess.consts.BaseChess;
 import org.laziji.blindchess.consts.Chess;
 import org.laziji.blindchess.consts.Color;
+import org.laziji.blindchess.consts.WinType;
 import org.laziji.blindchess.exception.StepException;
 import org.laziji.blindchess.io.ChIO;
 import org.laziji.blindchess.io.IO;
@@ -85,13 +86,13 @@ public class Board {
             if (step == null) {
                 win = rb.opposite();
                 done = true;
-                System.out.printf("%s胜\n", win.getName());
+                io.printWin(win, WinType.CHECKMATE);
                 break;
             }
             try {
                 action(step);
             } catch (StepException e) {
-                System.out.println(e.getMessage());
+                e.printStackTrace();
             } catch (Exception e) {
                 e.printStackTrace();
             }
@@ -169,18 +170,11 @@ public class Board {
         }
     }
 
-    public void print() {
-        for (int y = 9; y >= 0; y--) {
-            for (int x = 8; x >= 0; x--) {
-                System.out.printf("%s\t", map[y][x] == null ? " " : map[y][x].getName());
-            }
-            System.out.println();
-        }
-    }
-
     public void action(Step step) {
         stepVerify(step);
-        System.out.printf("第%04d步 %s: %s\n", ++stepCount, rb.getName(), io.output(step, this, rb));
+        if (io != null) {
+            io.printStep(this, step);
+        }
         move(step);
     }
 
@@ -222,7 +216,7 @@ public class Board {
         if (isWin()) {
             win = rb;
             done = true;
-            System.out.printf("%s胜\n", win.getName());
+            io.printWin(win, WinType.CHECKMATE);
             return true;
         }
 
@@ -230,7 +224,7 @@ public class Board {
         if (allStep.isEmpty()) {
             win = rb.opposite();
             done = true;
-            System.out.printf("困毙 %s胜\n", win.getName());
+            io.printWin(win, WinType.STALEMATE);
             return true;
         }
         boolean lose = true;
@@ -246,9 +240,9 @@ public class Board {
             done = true;
             List<Step> oppAllStep = getAllNextStep(rb.opposite());
             if (oppAllStep.contains(find(BaseChess.SHUAI, rb))) {
-                System.out.printf("%s胜\n", win.getName());
+                io.printWin(win, WinType.CHECKMATE);
             } else {
-                System.out.printf("困毙%s胜\n", win.getName());
+                io.printWin(win, WinType.STALEMATE);
             }
             return true;
         }

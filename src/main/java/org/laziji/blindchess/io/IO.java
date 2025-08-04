@@ -3,10 +3,17 @@ package org.laziji.blindchess.io;
 import org.laziji.blindchess.base.Board;
 import org.laziji.blindchess.base.Step;
 import org.laziji.blindchess.consts.Color;
+import org.laziji.blindchess.consts.WinType;
 
 public interface IO {
 
-    Step input(String cmd, Board board, Color rb);
+    Step input(Board board, String cmd);
 
-    String output(Step step, Board board, Color rb);
+    String output(Board board, Step step);
+
+    void printStep(Board board, Step step);
+
+    void printWin(Color rb, WinType winType);
+
+    void printBoard(Board board);
 }

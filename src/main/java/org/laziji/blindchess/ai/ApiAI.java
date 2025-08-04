@@ -6,10 +6,10 @@ import org.apache.hc.client5.http.impl.classic.CloseableHttpResponse;
 import org.apache.hc.client5.http.impl.classic.HttpClients;
 import org.apache.hc.core5.http.io.entity.EntityUtils;
 import org.laziji.blindchess.base.Board;
-import org.laziji.blindchess.consts.Chess;
-import org.laziji.blindchess.base.Point;
 import org.laziji.blindchess.base.Step;
+import org.laziji.blindchess.consts.Chess;
 import org.laziji.blindchess.consts.Color;
+import org.laziji.blindchess.io.EnIO;
 import org.laziji.blindchess.io.IO;
 
 import java.util.HashMap;
@@ -39,12 +39,14 @@ public class ApiAI implements AI {
     private Board board;
     private Color rb;
     private CloseableHttpClient httpClient;
+    private IO io;
 
     @Override
     public void init(Board board, Color rb) throws Exception {
         this.board = board;
         this.rb = rb;
         this.httpClient = HttpClients.createDefault();
+        this.io = new EnIO();
     }
 
     @Override
@@ -79,15 +81,11 @@ public class ApiAI implements AI {
         HttpGet httpGet = new HttpGet(url);
         try (CloseableHttpResponse response = httpClient.execute(httpGet)) {
             String cmd = EntityUtils.toString(response.getEntity());
-            System.out.println(cmd);
+//            System.out.println(cmd);
             if (!cmd.startsWith("move:")) {
                 return null;
             }
-            int ox = cmd.charAt(5) - 'a';
-            int oy = cmd.charAt(6) - '0';
-            int nx = cmd.charAt(7) - 'a';
-            int ny = cmd.charAt(8) - '0';
-            return new Step(new Point(ox, oy), new Point(nx, ny));
+            return io.input(board, cmd.substring(5));
         }
     }
 }
