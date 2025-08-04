@@ -2,11 +2,8 @@ package org.laziji.blindchess.base;
 
 public class Step {
 
-    private Point from;
-    private Point to;
-
-    public Step() {
-    }
+    private final Point from;
+    private final Point to;
 
     public Step(Point from, Point to) {
         this.from = from;
@@ -17,15 +14,7 @@ public class Step {
         return from;
     }
 
-    public void setFrom(Point from) {
-        this.from = from;
-    }
-
     public Point getTo() {
         return to;
-    }
-
-    public void setTo(Point to) {
-        this.to = to;
     }
 }

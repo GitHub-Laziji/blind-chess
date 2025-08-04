@@ -1,10 +1,13 @@
 package org.laziji.blindchess.base;
 
+import com.google.common.collect.ImmutableList;
 import org.laziji.blindchess.ai.AI;
 import org.laziji.blindchess.consts.BaseChess;
 import org.laziji.blindchess.consts.Chess;
 import org.laziji.blindchess.consts.Color;
 import org.laziji.blindchess.exception.StepException;
+import org.laziji.blindchess.io.ChIO;
+import org.laziji.blindchess.io.IO;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -31,18 +34,45 @@ public class Board {
     private int stepCount = 0;
     private boolean done = false;
     private Color win = null;
+    private List<Step> steps = new ArrayList<>();
+    private IO io;
 
     public Board() {
-
+        this.io = new ChIO();
     }
 
-    public Board(Chess[][] map, Color rb) {
+    public Board(IO io) {
+        this.io = io;
+    }
+
+    public Board(Chess[][] map, Color rb, IO io) {
         for (int y = 0; y < 10; y++) {
             for (int x = 0; x < 9; x++) {
                 this.map[y][x] = map[y][x];
             }
         }
         this.rb = rb;
+        this.io = io;
+    }
+
+    public Color getRb() {
+        return rb;
+    }
+
+    public int getStepCount() {
+        return stepCount;
+    }
+
+    public boolean isDone() {
+        return done;
+    }
+
+    public Color getWin() {
+        return win;
+    }
+
+    public List<Step> getSteps() {
+        return ImmutableList.copyOf(steps);
     }
 
     public void run(AI rPlayer, AI bPlayer) throws Exception {
@@ -69,6 +99,7 @@ public class Board {
         rPlayer.close();
         bPlayer.close();
     }
+
 
     public Chess getChess(Point point) {
         return map[point.getY()][point.getX()];
@@ -149,11 +180,13 @@ public class Board {
 
     public void action(Step step) {
         stepVerify(step);
-        System.out.printf("第%04d步 %s: %s\n", ++stepCount, rb.getName(), stepToChCmd(step));
+        System.out.printf("第%04d步 %s: %s\n", ++stepCount, rb.getName(), io.output(step, this, rb));
         move(step);
     }
 
     private void move(Step step) {
+        steps.add(step);
+        stepCount++;
         map[step.getTo().getY()][step.getTo().getX()] = map[step.getFrom().getY()][step.getFrom().getX()];
         map[step.getFrom().getY()][step.getFrom().getX()] = null;
         rb = rb.opposite();
@@ -170,6 +203,11 @@ public class Board {
         List<Point> points = getChess(step.getFrom()).getNextPoint(this, step.getFrom());
         if (!points.contains(step.getTo())) {
             throw new StepException("ERROR: 走棋不符合规范");
+        }
+        Board subBoard = new Board(this.map, rb, null);
+        subBoard.move(step);
+        if (subBoard.isWin()) {
+            throw new StepException("ERROR: 不能送将");
         }
     }
 
@@ -197,7 +235,7 @@ public class Board {
         }
         boolean lose = true;
         for (Step step : allStep) {
-            Board subBoard = new Board(this.map, rb);
+            Board subBoard = new Board(this.map, rb, null);
             subBoard.move(step);
             if (!subBoard.isWin()) {
                 lose = false;
@@ -217,78 +255,4 @@ public class Board {
         return false;
     }
 
-    private String stepToChCmd(Step step) {
-        int ox = step.getFrom().getX();
-        int oy = step.getFrom().getY();
-        int nx = step.getTo().getX();
-        int ny = step.getTo().getY();
-        Chess from = map[oy][ox];
-        StringBuilder cmd = new StringBuilder();
-        boolean repeat = false;
-        int repeatIndex = 0;
-        int repeatCount = 0;
-        for (int x = 0; x < 9; x++) {
-            int colIndex = -1;
-            int colCount = 0;
-            for (int y = 9; y >= 0; y--) {
-                if (map[from.getRb() == Color.RED ? y : (9 - y)][from.getRb() == Color.RED ? x : (8 - x)] == from) {
-                    colCount++;
-                    if (x == ox && from.getRb() == Color.RED ? (y >= oy) : (y <= oy)) {
-                        colIndex++;
-                    }
-                }
-            }
-            if (colCount >= 2) {
-                if (x == ox) {
-                    repeat = true;
-                    repeatIndex = repeatCount + colIndex;
-                }
-                repeatCount += colCount;
-            }
-        }
-
-        if (repeat) {
-            String[] t;
-            if (repeatCount <= 2) {
-                t = new String[]{"前", "后"};
-            } else if (repeatCount == 3) {
-                t = new String[]{"前", "中", "后"};
-            } else {
-                t = new String[]{"一", "二", "三", "四", "五"};
-            }
-            cmd.append(t[repeatIndex]);
-            cmd.append(from.getName());
-        } else {
-            cmd.append(from.getName());
-            cmd.append(from.getRb() == Color.RED ? (ox + 1) : (8 - ox + 1));
-        }
-
-        if (oy == ny) {
-            cmd.append("平");
-            cmd.append(from.getRb() == Color.RED ? (nx + 1) : (8 - nx + 1));
-        } else if (oy < ny) {
-            if (from.getRb() == Color.RED) {
-                cmd.append("进");
-            } else {
-                cmd.append("退");
-            }
-            if (ox == nx) {
-                cmd.append(ny - oy);
-            } else {
-                cmd.append(from.getRb() == Color.RED ? (nx + 1) : (8 - nx + 1));
-            }
-        } else {
-            if (from.getRb() == Color.RED) {
-                cmd.append("退");
-            } else {
-                cmd.append("进");
-            }
-            if (ox == nx) {
-                cmd.append(oy - ny);
-            } else {
-                cmd.append(from.getRb() == Color.RED ? (nx + 1) : (8 - nx + 1));
-            }
-        }
-        return cmd.toString();
-    }
 }

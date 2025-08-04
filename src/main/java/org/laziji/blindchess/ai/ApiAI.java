@@ -10,6 +10,7 @@ import org.laziji.blindchess.consts.Chess;
 import org.laziji.blindchess.base.Point;
 import org.laziji.blindchess.base.Step;
 import org.laziji.blindchess.consts.Color;
+import org.laziji.blindchess.io.IO;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -78,6 +79,7 @@ public class ApiAI implements AI {
         HttpGet httpGet = new HttpGet(url);
         try (CloseableHttpResponse response = httpClient.execute(httpGet)) {
             String cmd = EntityUtils.toString(response.getEntity());
+            System.out.println(cmd);
             if (!cmd.startsWith("move:")) {
                 return null;
             }

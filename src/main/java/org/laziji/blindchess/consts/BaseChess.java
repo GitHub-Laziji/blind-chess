@@ -12,16 +12,15 @@ import java.util.stream.Collectors;
 public enum BaseChess {
 
     SHUAI(true, (board, point, rb) -> {
-        List<Point> next = Arrays.asList(point.toL(1), point.toR(1), point.toT(1), point.toB(1));
-        return next.stream().filter(o -> {
-            if (!(board.inJiuGong(o, rb) && !board.hasChess(o, rb))) {
-                return false;
-            }
-            do {
-                o = rb == Color.RED ? o.toT(1) : o.toB(1);
-            } while (board.inBoard(o) && (!board.hasChess(o) || o.equals(point)));
-            return !board.inBoard(o) || !board.getChess(o).getBaseChess().isKing();
-        }).collect(Collectors.toList());
+        List<Point> next = Arrays.asList(point.toL(1), point.toR(1), point.toT(1), point.toB(1)).stream().filter(o -> board.inJiuGong(o, rb) && !board.hasChess(o, rb)).collect(Collectors.toList());
+        Point o = point;
+        do {
+            o = rb == Color.RED ? o.toT(1) : o.toB(1);
+        } while (board.inBoard(o) && (!board.hasChess(o) || o.equals(point)));
+        if (board.inBoard(o) && board.getChess(o).getBaseChess().isKing()) {
+            next.add(o);
+        }
+        return next;
     }),
     SHI((board, point, rb) -> {
         List<Point> next = Arrays.asList(point.toT(1).toL(1), point.toT(1).toR(1), point.toB(1).toL(1), point.toB(1).toR(1));

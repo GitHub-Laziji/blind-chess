@@ -3,6 +3,7 @@ package org.laziji.blindchess.ai;
 import org.laziji.blindchess.base.Board;
 import org.laziji.blindchess.base.Step;
 import org.laziji.blindchess.consts.Color;
+import org.laziji.blindchess.io.IO;
 
 public interface AI {
 
