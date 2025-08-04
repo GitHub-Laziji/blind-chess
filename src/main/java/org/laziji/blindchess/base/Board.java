@@ -128,10 +128,45 @@ public class Board {
         int ny = step.getTo().getY();
         Chess from = map[oy][ox];
         StringBuilder cmd = new StringBuilder();
-        int count=0;
-        // TODO
-        cmd.append(from.getName());
-        cmd.append(from.getRb() == Color.RED ? (ox + 1) : (8 - ox + 1));
+        boolean repeat = false;
+        int repeatIndex = 0;
+        int repeatCount = 0;
+        for (int x = 0; x < 9; x++) {
+            int colIndex = -1;
+            int colCount = 0;
+            for (int y = 9; y >= 0; y--) {
+                if (map[y][x] == from) {
+                    colCount++;
+                    if (x == ox && y >= oy) {
+                        colIndex++;
+                    }
+                }
+            }
+            if (colCount >= 2) {
+                if (x == ox) {
+                    repeat = true;
+                    repeatIndex = repeatCount + colIndex;
+                }
+                repeatCount += colCount;
+            }
+        }
+
+        if (repeat) {
+            String[] t;
+            if (repeatCount <= 2) {
+                t = new String[]{"前", "后"};
+            } else if (repeatCount == 3) {
+                t = new String[]{"前", "中", "后"};
+            } else {
+                t = new String[]{"一", "二", "三", "四", "五"};
+            }
+            cmd.append(t[repeatIndex]);
+            cmd.append(from.getName());
+        } else {
+            cmd.append(from.getName());
+            cmd.append(from.getRb() == Color.RED ? (ox + 1) : (8 - ox + 1));
+        }
+
         if (oy == ny) {
             cmd.append("平");
             cmd.append(from.getRb() == Color.RED ? (nx + 1) : (8 - nx + 1));
