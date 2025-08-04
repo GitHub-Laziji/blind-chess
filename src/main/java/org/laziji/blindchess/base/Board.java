@@ -38,7 +38,7 @@ public class Board {
     public void run() throws Exception {
         players.get(Color.RED).init(this, Color.RED);
         players.get(Color.BLACK).init(this, Color.BLACK);
-        while (!done) {
+        while (!isFinal()) {
             Step step = players.get(rb).queryBest();
             if (step == null) {
                 win = rb.opposite();
@@ -94,13 +94,21 @@ public class Board {
         }
     }
 
+    public void print() {
+        for (int y = 9; y >= 0; y--) {
+            for (int x = 8; x >= 0; x--) {
+                System.out.printf("%s\t", map[y][x] == null ? " " : map[y][x].getName());
+            }
+            System.out.println();
+        }
+    }
+
     private void active(Step step) throws Exception {
         stepVerify(step);
         System.out.printf("第%04d步 %s: %s\n", ++stepCount, rb.getName(), stepToChCmd(step));
         map[step.getTo().getY()][step.getTo().getX()] = map[step.getFrom().getY()][step.getFrom().getX()];
         map[step.getFrom().getY()][step.getFrom().getX()] = null;
         rb = rb.opposite();
-        finalVerify();
     }
 
     private void stepVerify(Step step) {
@@ -117,8 +125,31 @@ public class Board {
         }
     }
 
-    private void finalVerify() {
-        // TODO
+    private boolean isFinal() {
+        if (done) {
+            return true;
+        }
+        boolean kunbi = true;
+        for (int y = 0; y < 10; y++) {
+            for (int x = 0; x < 9; x++) {
+                if (map[y][x] != null && map[y][x].getRb() == rb) {
+                    if (!map[y][x].getNextPoint(this, new Point(x, y)).isEmpty()) {
+                        kunbi = false;
+                        break;
+                    }
+                }
+            }
+            if (!kunbi) {
+                break;
+            }
+        }
+        if (kunbi) {
+            win = rb.opposite();
+            done = true;
+            System.out.printf("困毙 %s胜\n", win.getName());
+            return true;
+        }
+        return false;
     }
 
     private String stepToChCmd(Step step) {
@@ -135,9 +166,9 @@ public class Board {
             int colIndex = -1;
             int colCount = 0;
             for (int y = 9; y >= 0; y--) {
-                if (map[y][x] == from) {
+                if (map[from.getRb() == Color.RED ? y : (9 - y)][from.getRb() == Color.RED ? x : (8 - x)] == from) {
                     colCount++;
-                    if (x == ox && y >= oy) {
+                    if (x == ox && from.getRb() == Color.RED ? (y >= oy) : (y <= oy)) {
                         colIndex++;
                     }
                 }

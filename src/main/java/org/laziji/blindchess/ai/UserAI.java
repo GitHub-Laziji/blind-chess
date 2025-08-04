@@ -46,6 +46,7 @@ public class UserAI implements AI {
 
     @Override
     public Step queryBest() throws Exception {
+        board.print();
         String cmd = lineReader.readLine("象棋 > ");
         if ("exit".equals(cmd)) {
             return null;
