@@ -1,10 +1,12 @@
 package org.laziji.blindchess.base;
 
 import org.laziji.blindchess.ai.AI;
+import org.laziji.blindchess.consts.BaseChess;
 import org.laziji.blindchess.consts.Chess;
 import org.laziji.blindchess.consts.Color;
 import org.laziji.blindchess.exception.StepException;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -30,14 +32,24 @@ public class Board {
     private boolean done = false;
     private Color win = null;
 
-    public Board(AI rPlayer, AI bPlayer) {
-        players.put(Color.RED, rPlayer);
-        players.put(Color.BLACK, bPlayer);
+    public Board() {
+
     }
 
-    public void run() throws Exception {
-        players.get(Color.RED).init(this, Color.RED);
-        players.get(Color.BLACK).init(this, Color.BLACK);
+    public Board(Chess[][] map, Color rb) {
+        for (int y = 0; y < 10; y++) {
+            for (int x = 0; x < 9; x++) {
+                this.map[y][x] = map[y][x];
+            }
+        }
+        this.rb = rb;
+    }
+
+    public void run(AI rPlayer, AI bPlayer) throws Exception {
+        rPlayer.init(this, Color.RED);
+        bPlayer.init(this, Color.BLACK);
+        players.put(Color.RED, rPlayer);
+        players.put(Color.BLACK, bPlayer);
         while (!isFinal()) {
             Step step = players.get(rb).queryBest();
             if (step == null) {
@@ -47,15 +59,15 @@ public class Board {
                 break;
             }
             try {
-                active(step);
+                action(step);
             } catch (StepException e) {
                 System.out.println(e.getMessage());
             } catch (Exception e) {
                 e.printStackTrace();
             }
         }
-        players.get(Color.RED).close();
-        players.get(Color.BLACK).close();
+        rPlayer.close();
+        bPlayer.close();
     }
 
     public Chess getChess(Point point) {
@@ -64,6 +76,38 @@ public class Board {
 
     public Chess getChess(int x, int y) {
         return map[y][x];
+    }
+
+    public List<Point> findAll(BaseChess baseChess, Color rb) {
+        List<Point> all = new ArrayList<>();
+        for (int y = 0; y < 10; y++) {
+            for (int x = 0; x < 9; x++) {
+                if (map[y][x] != null && map[y][x].getRb() == rb && map[y][x].getBaseChess() == baseChess) {
+                    all.add(new Point(x, y));
+                }
+            }
+        }
+        return all;
+    }
+
+    public Point find(BaseChess baseChess, Color rb) {
+        List<Point> all = findAll(baseChess, rb);
+        return all.isEmpty() ? null : all.get(0);
+    }
+
+    public List<Step> getAllNextStep(Color rb) {
+        List<Step> allStep = new ArrayList<>();
+        for (int y = 0; y < 10; y++) {
+            for (int x = 0; x < 9; x++) {
+                if (map[y][x] == null || map[y][x].getRb() != rb) {
+                    continue;
+                }
+                for (Point o : map[y][x].getNextPoint(this, new Point(x, y))) {
+                    allStep.add(new Step(new Point(x, y), o));
+                }
+            }
+        }
+        return allStep;
     }
 
     public boolean hasChess(Point point, Color rb) {
@@ -103,9 +147,13 @@ public class Board {
         }
     }
 
-    private void active(Step step) throws Exception {
+    public void action(Step step) {
         stepVerify(step);
         System.out.printf("第%04d步 %s: %s\n", ++stepCount, rb.getName(), stepToChCmd(step));
+        move(step);
+    }
+
+    private void move(Step step) {
         map[step.getTo().getY()][step.getTo().getX()] = map[step.getFrom().getY()][step.getFrom().getX()];
         map[step.getFrom().getY()][step.getFrom().getX()] = null;
         rb = rb.opposite();
@@ -125,28 +173,45 @@ public class Board {
         }
     }
 
+    private boolean isWin() {
+        return getAllNextStep(rb).contains(find(BaseChess.SHUAI, rb.opposite()));
+    }
+
     private boolean isFinal() {
         if (done) {
             return true;
         }
-        boolean kunbi = true;
-        for (int y = 0; y < 10; y++) {
-            for (int x = 0; x < 9; x++) {
-                if (map[y][x] != null && map[y][x].getRb() == rb) {
-                    if (!map[y][x].getNextPoint(this, new Point(x, y)).isEmpty()) {
-                        kunbi = false;
-                        break;
-                    }
-                }
-            }
-            if (!kunbi) {
-                break;
-            }
+        if (isWin()) {
+            win = rb;
+            done = true;
+            System.out.printf("%s胜\n", win.getName());
+            return true;
         }
-        if (kunbi) {
+
+        List<Step> allStep = getAllNextStep(rb);
+        if (allStep.isEmpty()) {
             win = rb.opposite();
             done = true;
             System.out.printf("困毙 %s胜\n", win.getName());
+            return true;
+        }
+        boolean lose = true;
+        for (Step step : allStep) {
+            Board subBoard = new Board(this.map, rb);
+            subBoard.move(step);
+            if (!subBoard.isWin()) {
+                lose = false;
+            }
+        }
+        if (lose) {
+            win = rb.opposite();
+            done = true;
+            List<Step> oppAllStep = getAllNextStep(rb.opposite());
+            if (oppAllStep.contains(find(BaseChess.SHUAI, rb))) {
+                System.out.printf("%s胜\n", win.getName());
+            } else {
+                System.out.printf("困毙%s胜\n", win.getName());
+            }
             return true;
         }
         return false;

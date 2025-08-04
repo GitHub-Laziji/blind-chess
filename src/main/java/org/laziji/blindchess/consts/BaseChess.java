@@ -14,7 +14,7 @@ public enum BaseChess {
     SHUAI(true, (board, point, rb) -> {
         List<Point> next = Arrays.asList(point.toL(1), point.toR(1), point.toT(1), point.toB(1));
         return next.stream().filter(o -> {
-            if (!board.inJiuGong(o, rb) && board.hasChess(o, rb)) {
+            if (!(board.inJiuGong(o, rb) && !board.hasChess(o, rb))) {
                 return false;
             }
             do {

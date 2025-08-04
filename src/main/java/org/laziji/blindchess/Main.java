@@ -6,7 +6,7 @@ import org.laziji.blindchess.base.Board;
 
 public class Main {
     public static void main(String[] args) throws Exception {
-        Board board = new Board(new UserAI(), new ApiAI());
-        board.run();
+        Board board = new Board();
+        board.run(new UserAI(), new ApiAI());
     }
 }
