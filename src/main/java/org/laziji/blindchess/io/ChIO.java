@@ -214,6 +214,10 @@ public class ChIO implements IO {
 
     @Override
     public void printWin(Color rb, WinType winType) {
+        if (rb == null) {
+            System.out.println("和棋");
+            return;
+        }
         System.out.printf("%s胜", rb.getName());
         if (winType == WinType.STALEMATE) {
             System.out.print("（困毙）");

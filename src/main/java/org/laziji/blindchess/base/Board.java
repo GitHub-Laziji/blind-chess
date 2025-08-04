@@ -32,7 +32,6 @@ public class Board {
 
     private Color rb = Color.RED;
     private final Map<Color, AI> players = new HashMap<>();
-    private int stepCount = 0;
     private boolean done = false;
     private Color win = null;
     private List<Step> steps = new ArrayList<>();
@@ -61,7 +60,7 @@ public class Board {
     }
 
     public int getStepCount() {
-        return stepCount;
+        return steps.size();
     }
 
     public boolean isDone() {
@@ -180,7 +179,6 @@ public class Board {
 
     private void move(Step step) {
         steps.add(step);
-        stepCount++;
         map[step.getTo().getY()][step.getTo().getX()] = map[step.getFrom().getY()][step.getFrom().getX()];
         map[step.getFrom().getY()][step.getFrom().getX()] = null;
         rb = rb.opposite();
